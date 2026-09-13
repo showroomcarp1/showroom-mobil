@@ -1,69 +1,204 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useRef } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function HeroClient() {
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
+
+  const containerRef = useRef<HTMLElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handleNavigate = (path: string = "/cars") => {
+    if (isNavigating) return;
+
+    // Hitung posisi pasti tombol terhadap container agar zoom presisi 100%
+    if (buttonRef.current && containerRef.current) {
+      const btnRect = buttonRef.current.getBoundingClientRect();
+      const containerRect = containerRef.current.getBoundingClientRect();
+
+      // Hitung titik tengah tombol dalam persentase
+      const xPercent =
+        ((btnRect.left + btnRect.width / 2 - containerRect.left) /
+          containerRect.width) *
+        100;
+      const yPercent =
+        ((btnRect.top + btnRect.height / 2 - containerRect.top) /
+          containerRect.height) *
+        100;
+
+      setZoomOrigin(`${xPercent}% ${yPercent}%`);
+    }
+
+    setIsNavigating(true);
+
+    // Navigasi setelah animasi selesai
+    setTimeout(() => {
+      router.push(path);
+    }, 650);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <section
+      ref={containerRef}
+      aria-label="Hero Section"
+      className="relative h-screen w-full overflow-hidden bg-neutral-950 flex items-center justify-center"
+    >
+      {/* 
+        Container Kamera Sinematik: 
+        Menerima transform-origin dinamis dari posisi tombol
+      */}
+      <motion.div
+        animate={
+          isNavigating
+            ? {
+                scale: 12, // Zoom ekstra besar hingga tombol menyelimuti seluruh layar
+                opacity: [1, 1, 0],
+                filter: "blur(10px) brightness(1.2)",
+              }
+            : {
+                scale: 1,
+                opacity: 1,
+                filter: "blur(0px) brightness(1)",
+              }
+        }
+        transition={{
+          duration: 0.65,
+          ease: [0.7, 0, 0.15, 1], // Kurva percepatan sinematik
+        }}
+        style={{ transformOrigin: zoomOrigin }}
+        className="relative w-full h-full flex items-center justify-center"
+      >
+        {/* Latar Belakang HD */}
+        <div className="absolute inset-0 z-0 opacity-70">
+          <Image
+            src="/images/hero.jpg"
+            alt="AutoHigh Luxury Showroom"
+            fill
+            priority
+            quality={100}
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/70 via-neutral-950/40 to-neutral-950/80" />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {/* Konten Utama */}
+        <main className="relative z-10 mx-auto max-w-5xl px-4 text-center flex flex-col items-center">
+          {/* Header & Logo */}
+          <header className="mb-8">
+            <motion.button
+              type="button"
+              onClick={() => handleNavigate("/cars")}
+              initial={{ opacity: 0, y: -20 }}
+              animate={
+                isNavigating
+                  ? { opacity: 0, y: -30, filter: "blur(8px)" }
+                  : { opacity: 1, y: 0 }
+              }
+              transition={{ duration: isNavigating ? 0.25 : 0.8 }}
+              whileHover={!isNavigating ? { scale: 1.02 } : {}}
+              whileTap={!isNavigating ? { scale: 0.98 } : {}}
+              className="cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-white rounded-lg"
+              aria-label="AutoHigh Homepage"
+            >
+              <div className="relative h-28 w-80 sm:h-44 sm:w-[520px]">
+                <Image
+                  src="/images/hero_logo.png"
+                  alt="AutoHigh Logo"
+                  fill
+                  priority
+                  className="object-contain filter"
+                />
+              </div>
+            </motion.button>
+          </header>
+
+          {/* Deskripsi */}
+          <article className="max-w-3xl">
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={
+                isNavigating
+                  ? { opacity: 0, scale: 0.8, filter: "blur(6px)" }
+                  : { opacity: 1, y: 0, scale: 1 }
+              }
+              transition={{
+                duration: isNavigating ? 0.2 : 0.6,
+                delay: isNavigating ? 0 : 0.2,
+              }}
+              className="text-lg sm:text-2xl font-medium text-white leading-relaxed tracking-wide drop-shadow-md"
+            >
+              Welcome to AutoHigh Official Website. AutoHigh is a luxury car
+              dealership offering a curated selection of premium vehicles.
+            </motion.p>
+          </article>
+
+          {/* Navigasi Aksi / Call To Action */}
+          <nav className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-5 w-full sm:w-auto">
+            {/* Tombol Utama (Target Zoom) */}
+            <motion.button
+              ref={buttonRef}
+              type="button"
+              onClick={() => handleNavigate("/cars")}
+              animate={
+                isNavigating
+                  ? {
+                      backgroundColor: "#ffffff",
+                      borderColor: "#ffffff",
+                      boxShadow: "0px 0px 100px 30px rgba(255,255,255,0.9)",
+                    }
+                  : {}
+              }
+              transition={{ duration: 0.3 }}
+              className="relative overflow-hidden w-full sm:w-auto px-10 py-4 border border-white bg-transparent text-white font-extrabold text-base uppercase tracking-widest transition-all duration-800 ease-in hover:bg-white hover:text-black active:scale-[0.98] shadow-2xl cursor-pointer"
+            >
+              <span className="relative z-10">Get your dream car</span>
+              {/* Overlay pemutih cepat saat zoom berakselerasi */}
+              {isNavigating && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2, delay: 0.2 }}
+                  className="absolute inset-0 bg-white z-20"
+                />
+              )}
+            </motion.button>
+
+            {/* Tombol Sekunder */}
+            <motion.a
+              href="https://wa.me/6281234567890"
+              target="_blank"
+              rel="noopener noreferrer"
+              animate={
+                isNavigating
+                  ? { opacity: 0, x: 40, filter: "blur(6px)" }
+                  : { opacity: 1, x: 0 }
+              }
+              transition={{ duration: 0.25 }}
+              className="w-full sm:w-auto px-10 py-4 border border-white bg-white text-neutral-950 font-extrabold text-base uppercase tracking-widest transition-all duration-800 ease-in hover:bg-transparent hover:text-white active:scale-[0.98] shadow-2xl cursor-pointer"
+            >
+              Contact US
+            </motion.a>
+          </nav>
+        </main>
+      </motion.div>
+
+      {/* Layer Fade-out Hitam Halus untuk Transisi Halaman Seamless */}
+      <AnimatePresence>
+        {isNavigating && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, delay: 0.45 }}
+            className="pointer-events-none fixed inset-0 z-50 bg-black"
+          />
+        )}
+      </AnimatePresence>
+    </section>
   );
 }
