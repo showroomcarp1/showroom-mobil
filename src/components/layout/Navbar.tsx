@@ -297,7 +297,7 @@ export default function Navbar() {
               animate="open"
               exit="closed"
               variants={drawerVariants}
-              className="fixed top-0 right-0 z-40 h-screen w-full sm:w-[500px] bg-black/75 backdrop-blur-md text-white border-l border-white/15 px-8 sm:px-12 py-12 flex flex-col justify-between overflow-visible shadow-none"
+              className="fixed top-0 right-0 z-40 h-screen w-full sm:w-[500px] bg-black/75 backdrop-blur-md text-white px-8 sm:px-12 py-12 flex flex-col justify-between overflow-visible shadow-none"
               style={{
                 boxShadow: "none",
               }}
@@ -357,13 +357,13 @@ export default function Navbar() {
                     onClick={closeMenu}
                     className="group inline-flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] font-medium text-neutral-400 hover:text-white transition-colors duration-800 ease-in-out"
                   >
-                    <span className="w-7 h-7 flex items-center justify-center transition-all duration-800 ease-in-out">
+                    <span className="w-4 h-4 flex items-center justify-center transition-all duration-800 ease-in-out">
                       <FontAwesomeIcon
                         icon={faUser}
                         className="text-[11px] text-neutral-400 group-hover:text-white transition-colors duration-800"
                       />
                     </span>
-                    <span>{isLoggedIn ? "Dashboard" : "Login"}</span>
+                    <span>{isLoggedIn ? "Logged In" : "Log In"}</span>
                   </Link>
                 </div>
 

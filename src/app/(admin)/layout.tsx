@@ -62,7 +62,7 @@ export default function AdminLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-all duration-150 active:scale-[0.98] ${
+                  className={`flex items-center gap-3 rounded-md px-3 py-4 text-[13px] font-semibold transition-all duration-300 active:scale-[0.98] ${
                     isActive
                       ? "bg-neutral-900 text-white"
                       : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100"
@@ -95,7 +95,7 @@ export default function AdminLayout({
             <span>Halaman Utama</span>
           </Link>
 
-          {/* Logout Button Merah Rounded-MD */}
+          {/* Logout Button Merah Rounded-MD  */}
           {/*button*/}
           <button
             type="button"

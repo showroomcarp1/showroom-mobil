@@ -109,7 +109,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="w-full bg-white border border-neutral-300 rounded-lg py-2.5 px-3.5 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition-colors duration-300"
+                className="w-full bg-white border border-neutral-300 rounded-xl py-2.5 px-3.5 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition-colors duration-300"
               />
             </div>
 
@@ -129,7 +129,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-white border border-neutral-300 rounded-lg py-2.5 pl-3.5 pr-10 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition-colors duration-300"
+                  className="w-full bg-white border border-neutral-300 rounded-xl py-2.5 pl-3.5 pr-10 text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-900 transition-colors duration-300"
                 />
                 {/* Button Toggle Mata */}
                 <button
@@ -152,7 +152,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 bg-neutral-900 hover:bg-black text-white font-semibold text-[15px] py-3 rounded-lg transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-2 bg-neutral-900 hover:bg-black text-white font-semibold text-[15px] py-3 rounded-xl transition-colors duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? "Logging in..." : "Login"}
             </button>

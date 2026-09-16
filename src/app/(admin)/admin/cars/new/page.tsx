@@ -215,7 +215,7 @@ export default function NewCarPage() {
     <div className="max-w-5xl mx-auto pb-16 space-y-8">
       {/* Header Utama Navigasi */}
       <header className="border-b border-neutral-200 pb-6">
-        <h1 className="text-3xl font-black tracking-tight text-neutral-950 sm:text-4xl">
+        <h1 className="text-[30px] font-black tracking-tight text-neutral-950 sm:text-[30px]">
           Tambah Unit Baru
         </h1>
         <p className="text-sm text-neutral-500 mt-1">
@@ -226,7 +226,7 @@ export default function NewCarPage() {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1: Dokumentasi Foto */}
-        <section className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <section className="bg-white border border-neutral-200 rounded-md p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-neutral-100 text-neutral-900">
@@ -250,7 +250,7 @@ export default function NewCarPage() {
             {images.map((url, idx) => (
               <div
                 key={`${url}-${idx}`}
-                className="relative group aspect-4/3 rounded-xl overflow-hidden border border-neutral-200 bg-neutral-100"
+                className="relative group aspect-4/3 rounded-md overflow-hidden border border-neutral-200 bg-neutral-100"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -304,7 +304,7 @@ export default function NewCarPage() {
         </section>
 
         {/* Section 2: Judul Display & Merek/Model */}
-        <section className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-xs space-y-6">
+        <section className="bg-white border border-neutral-200 rounded-md p-6 shadow-xs space-y-6">
           <div className="flex items-center gap-2.5 border-b border-neutral-100 pb-4">
             <div className="p-2 rounded-lg bg-neutral-100 text-neutral-900">
               <FontAwesomeIcon icon={faHeading} className="h-4 w-4" />
@@ -336,7 +336,7 @@ export default function NewCarPage() {
                 placeholder="Contoh: BMW M3 Competition Package 2023"
                 value={formData.title}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-900 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-semibold text-neutral-900 focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
               />
               <p className="text-[11px] text-neutral-400 mt-1">
                 Judul ini akan ditampilkan paling menonjol pada halaman depan
@@ -357,7 +357,7 @@ export default function NewCarPage() {
                   name="brand"
                   value={formData.brand}
                   onChange={handleBrandChange}
-                  className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                  className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
                 >
                   {BRANDS.map((b) => (
                     <option key={b.slug} value={b.name}>
@@ -382,7 +382,7 @@ export default function NewCarPage() {
                   placeholder="Ketik Model (Contoh: M3 / X5 / Civic)"
                   value={formData.model}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                  className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
                 />
               </div>
 
@@ -400,7 +400,7 @@ export default function NewCarPage() {
                   placeholder="Contoh: Competition / VRZ / Type R"
                   value={formData.variant}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                  className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
                 />
               </div>
             </div>
@@ -408,7 +408,7 @@ export default function NewCarPage() {
         </section>
 
         {/* Section 3: Spesifikasi Teknis & Kondisi */}
-        <section className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-xs space-y-6">
+        <section className="bg-white border border-neutral-200 rounded-md p-6 shadow-xs space-y-6">
           <div className="flex items-center gap-2.5 border-b border-neutral-100 pb-4">
             <div className="p-2 rounded-lg bg-neutral-100 text-neutral-900">
               <FontAwesomeIcon icon={faCar} className="h-4 w-4" />
@@ -437,7 +437,7 @@ export default function NewCarPage() {
                 name="condition"
                 value={formData.condition}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-semibold focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-semibold focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
               >
                 <option value="New">Baru (New)</option>
                 <option value="Used">Bekas (Used)</option>
@@ -459,7 +459,7 @@ export default function NewCarPage() {
                 required
                 value={formData.year}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
               />
             </div>
 
@@ -475,7 +475,7 @@ export default function NewCarPage() {
                 name="transmission"
                 value={formData.transmission}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
               >
                 <option value="Automatic">Automatic (AT)</option>
                 <option value="Manually">Manually (MT)</option>
@@ -495,7 +495,7 @@ export default function NewCarPage() {
                 name="fuel_type"
                 value={formData.fuel_type}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
               >
                 <option value="Petrol">Bensin (Petrol)</option>
                 <option value="Diesel">Diesel</option>
@@ -507,7 +507,7 @@ export default function NewCarPage() {
         </section>
 
         {/* Section 4: Kilometer, Harga & Deskripsi */}
-        <section className="bg-white border border-neutral-200 rounded-2xl p-6 shadow-xs space-y-6">
+        <section className="bg-white border border-neutral-200 rounded-md p-6 shadow-xs space-y-6">
           <div className="flex items-center gap-2.5 border-b border-neutral-100 pb-4">
             <div className="p-2 rounded-lg bg-neutral-100 text-neutral-900">
               <FontAwesomeIcon icon={faTags} className="h-4 w-4" />
@@ -544,7 +544,7 @@ export default function NewCarPage() {
                 placeholder="Contoh: 15000"
                 value={formData.mileage}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
               />
             </div>
 
@@ -564,7 +564,7 @@ export default function NewCarPage() {
                 placeholder="1250000000"
                 value={formData.price}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
               />
             </div>
 
@@ -583,7 +583,7 @@ export default function NewCarPage() {
                 placeholder="0"
                 value={formData.discount_price}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+                className="w-full rounded-md border border-neutral-200 px-4 py-2.5 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
               />
             </div>
           </div>
@@ -602,7 +602,7 @@ export default function NewCarPage() {
               placeholder="Catatan kondisi fisik, kelengkapan riwayat servis resmi, status pajak, dll."
               value={formData.description}
               onChange={handleChange}
-              className="w-full rounded-xl border border-neutral-200 p-4 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
+              className="w-full rounded-md border border-neutral-200 p-4 text-sm font-medium focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 outline-hidden transition-all bg-neutral-50/50 focus:bg-white"
             />
           </div>
         </section>
@@ -611,14 +611,14 @@ export default function NewCarPage() {
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-200">
           <Link
             href="/admin/cars"
-            className="rounded-xl border border-neutral-300 px-6 py-3 text-xs font-bold text-neutral-700 hover:bg-neutral-100 transition-colors"
+            className="rounded-md border border-neutral-300 px-6 py-3 text-xs font-bold text-neutral-700 hover:bg-neutral-100 transition-colors"
           >
             Batal
           </Link>
           <button
             type="submit"
             disabled={loading || uploading}
-            className="inline-flex items-center gap-2 rounded-xl bg-neutral-950 px-8 py-3 text-xs font-bold text-white hover:bg-neutral-800 transition-all shadow-md disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-md bg-neutral-950 px-8 py-3 text-xs font-bold text-white hover:bg-neutral-800 transition-all  disabled:opacity-50 cursor-pointer"
           >
             {loading && (
               <FontAwesomeIcon

@@ -248,7 +248,7 @@ export default function InventoryFilter({
           className="group flex items-center gap-3 text-left focus:outline-none"
         >
           <h2 className="text-base font-black uppercase tracking-[0.2em] text-neutral-900 transition-colors group-hover:text-neutral-600">
-            Select a Brand
+            Find a Car
           </h2>
           <svg
             className={`h-5 w-5 text-neutral-500 transition-transform duration-[500ms] ease-in-out group-hover:text-neutral-900 ${

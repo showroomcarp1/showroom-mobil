@@ -18,10 +18,10 @@ export default async function AdminCarsPage() {
   return (
     <main className="space-y-6">
       <header>
-        <h1 className="text-2xl font-extrabold text-neutral-900">
+        <h1 className="text-[30px] font-extrabold text-neutral-900">
           Kelola Katalog Unit
         </h1>
-        <p className="text-xs text-neutral-500 mt-1">
+        <p className="text-sm text-neutral-500 mt-1">
           Daftar lengkap seluruh mobil yang terdaftar di database.
         </p>
       </header>
