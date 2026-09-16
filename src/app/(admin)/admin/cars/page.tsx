@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import DataTable from "@/components/admin/DataTable";
-import { Car } from "@/types/car";
+import { Car } from "@/types/cars";
 
 export const revalidate = 0;
 

@@ -2,55 +2,180 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type {
+  ConditionType,
+  TransmissionType,
+  FuelType,
+  CarStatus,
+} from "@/types/cars";
+import type { Database } from "@/types/database";
 
-interface CarPayload {
-  slug: string;
+type CarRow = Database["public"]["Tables"]["cars"]["Row"];
+type CarInsert = Database["public"]["Tables"]["cars"]["Insert"];
+
+export interface CreateCarInput {
+  title: string;
   brand: string;
   model: string;
-  variant: string;
+  variant?: string;
   year: number;
-  transmission: "Automatic" | "Manual" | "CVT";
-  fuel_type: "Bensin" | "Diesel" | "Hybrid" | "Electric";
+  mileage?: number;
+  condition?: ConditionType;
+  transmission: TransmissionType;
+  fuel_type: FuelType;
   price: number;
   discount_price?: number;
   description?: string;
-  features?: string[];
-  status?: "available" | "sold" | "reserved";
+  status?: CarStatus;
+  images?: string[];
+  image_url?: string;
+  slug: string;
+  views?: number;
 }
 
-export async function createCar(payload: CarPayload) {
+export type UpdateCarInput = Partial<CreateCarInput>;
+
+/**
+ * Menyimpan data unit mobil baru ke Supabase
+ */
+export async function createCar(data: CreateCarInput): Promise<void> {
+  const supabase = await createClient();
+
+  const payload: CarInsert = {
+    title: data.title,
+    brand: data.brand,
+    model: data.model,
+    variant: data.variant ?? "",
+    year: data.year,
+    mileage: data.mileage ?? null,
+    condition: data.condition ?? "Used",
+    transmission: data.transmission,
+    fuel_type: data.fuel_type,
+    price: data.price,
+    discount_price: data.discount_price ?? null,
+    description: data.description ?? null,
+    status: data.status ?? "available",
+    images: data.images ?? null,
+    image_url: data.image_url ?? null,
+    slug: data.slug,
+    views: data.views ?? 0,
+  };
+
+  const { error } = await supabase.from("cars").insert(payload);
+
+  if (error) {
+    throw new Error(`Gagal menyimpan data unit: ${error.message}`);
+  }
+
+  revalidatePath("/admin/cars");
+  revalidatePath("/");
+}
+
+/**
+ * Memperbarui data unit mobil berdasarkan ID
+ */
+export async function updateCar(
+  id: string,
+  data: UpdateCarInput,
+): Promise<void> {
+  const supabase = await createClient();
+
+  const payload: Partial<CarInsert> = {
+    ...(data.title !== undefined && { title: data.title }),
+    ...(data.brand !== undefined && { brand: data.brand }),
+    ...(data.model !== undefined && { model: data.model }),
+    ...(data.variant !== undefined && { variant: data.variant }),
+    ...(data.year !== undefined && { year: data.year }),
+    ...(data.mileage !== undefined && { mileage: data.mileage ?? null }),
+    ...(data.condition !== undefined && { condition: data.condition }),
+    ...(data.transmission !== undefined && { transmission: data.transmission }),
+    ...(data.fuel_type !== undefined && { fuel_type: data.fuel_type }),
+    ...(data.price !== undefined && { price: data.price }),
+    ...(data.discount_price !== undefined && {
+      discount_price: data.discount_price,
+    }),
+    ...(data.description !== undefined && { description: data.description }),
+    ...(data.status !== undefined && { status: data.status }),
+    ...(data.images !== undefined && { images: data.images }),
+    ...(data.image_url !== undefined && { image_url: data.image_url }),
+    ...(data.slug !== undefined && { slug: data.slug }),
+    ...(data.views !== undefined && { views: data.views }),
+  };
+
+  const { error } = await supabase.from("cars").update(payload).eq("id", id);
+
+  if (error) {
+    throw new Error(`Gagal memperbarui data unit: ${error.message}`);
+  }
+
+  revalidatePath("/admin/cars");
+  revalidatePath(`/cars/${data.slug || id}`);
+  revalidatePath("/");
+}
+
+/**
+ * Menghapus data unit mobil berdasarkan ID
+ */
+export async function deleteCar(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("cars").delete().eq("id", id);
+
+  if (error) {
+    throw new Error(`Gagal menghapus unit: ${error.message}`);
+  }
+
+  revalidatePath("/admin/cars");
+  revalidatePath("/");
+}
+
+/**
+ * Menambah hitungan klik/view saat mobil diklik oleh pengunjung
+ */
+export async function incrementCarViews(carId: string): Promise<void> {
+  const supabase = await createClient();
+
+  // Mencoba lewat RPC atomik Supabase
+  const { error: rpcError } = await supabase.rpc("increment_car_views", {
+    car_id: carId,
+  });
+
+  // Fallback jika RPC function belum dikonfigurasi di PostgreSQL
+  if (rpcError) {
+    const { data } = await supabase
+      .from("cars")
+      .select("views")
+      .eq("id", carId)
+      .single();
+
+    const currentViews = data?.views ?? 0;
+
+    await supabase
+      .from("cars")
+      .update({ views: currentViews + 1 })
+      .eq("id", carId);
+  }
+
+  revalidatePath("/");
+}
+
+/**
+ * Mengambil daftar mobil trending berdasarkan jumlah klik/views terbanyak
+ */
+export async function getTrendingCars(limit = 6): Promise<CarRow[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("cars")
-    .insert([payload as never])
-    .select()
-    .single();
+    .select("*")
+    .eq("status", "available")
+    .order("views", { ascending: false })
+    .limit(limit);
 
   if (error) {
-    throw new Error(`Gagal menambah data mobil: ${error.message}`);
+    console.error("Gagal mengambil data mobil trending:", error.message);
+    return [];
   }
 
-  revalidatePath("/admin/cars");
-  revalidatePath("/cars");
-  return data;
-}
-
-export async function updateCar(id: string, payload: Partial<CarPayload>) {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("cars")
-    .update({ ...payload, updated_at: new Date().toISOString() } as never)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Gagal memperbarui data mobil: ${error.message}`);
-  }
-
-  revalidatePath("/admin/cars");
-  revalidatePath("/cars");
-  return data;
+  return data ?? [];
 }

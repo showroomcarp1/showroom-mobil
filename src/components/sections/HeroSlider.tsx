@@ -25,7 +25,8 @@ export default function HeroSlider() {
 
           {/* Deskripsi */}
           <p className="mt-4 text-base text-neutral-400 sm:text-lg">
-            Koleksi unit terbaru dan tersertifikasi. Kemudahan transaksi, simulasi kredit fleksibel, dan garansi resmi dealer.
+            Koleksi unit terbaru dan tersertifikasi. Kemudahan transaksi,
+            simulasi kredit fleksibel, dan garansi resmi dealer.
           </p>
 
           {/* Tombol Aksi */}
@@ -48,10 +49,17 @@ export default function HeroSlider() {
 
         {/* Quick Search Bar */}
         <div className="mt-12 rounded-2xl border border-neutral-800 bg-neutral-950/80 p-4 backdrop-blur-md shadow-2xl">
-          <form action="/cars" method="GET" className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <form
+            action="/cars"
+            method="GET"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+          >
             {/* Input Merek */}
             <div>
-              <label htmlFor="brand" className="block text-xs font-medium text-neutral-400 mb-1">
+              <label
+                htmlFor="brand"
+                className="block text-xs font-medium text-neutral-400 mb-1"
+              >
                 Merek
               </label>
               <select
@@ -69,7 +77,10 @@ export default function HeroSlider() {
 
             {/* Input Transmisi */}
             <div>
-              <label htmlFor="transmission" className="block text-xs font-medium text-neutral-400 mb-1">
+              <label
+                htmlFor="transmission"
+                className="block text-xs font-medium text-neutral-400 mb-1"
+              >
                 Transmisi
               </label>
               <select
@@ -79,13 +90,16 @@ export default function HeroSlider() {
               >
                 <option value="">Semua Transmisi</option>
                 <option value="Automatic">Automatic</option>
-                <option value="Manual">Manual</option>
+                <option value="Manually">Manually</option>
               </select>
             </div>
 
             {/* Input Range Harga */}
             <div>
-              <label htmlFor="price_range" className="block text-xs font-medium text-neutral-400 mb-1">
+              <label
+                htmlFor="price_range"
+                className="block text-xs font-medium text-neutral-400 mb-1"
+              >
                 Rentang Harga
               </label>
               <select
@@ -96,7 +110,9 @@ export default function HeroSlider() {
                 <option value="">Semua Harga</option>
                 <option value="0-300000000">&lt; Rp 300 Juta</option>
                 <option value="300000000-600000000">Rp 300 - 600 Juta</option>
-                <option value="600000000-1000000000">Rp 600 Juta - 1 Miliar</option>
+                <option value="600000000-1000000000">
+                  Rp 600 Juta - 1 Miliar
+                </option>
                 <option value="1000000000+">&gt; Rp 1 Miliar</option>
               </select>
             </div>

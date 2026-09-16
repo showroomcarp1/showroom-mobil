@@ -30,33 +30,33 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   }, [isOpen]);
 
   // Varian Animasi Fluid & Staggered
-  const menuVariants = {
-    closed: {
-      opacity: 0,
-      transition: {
-        duration: 0.3,
-        ease: [0.16, 1, 0.3, 1],
-        staggerChildren: 0.05,
-        staggerDirection: -1,
-      },
+const menuVariants = {
+  closed: {
+    opacity: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0, 0.2, 1] as const,
+      staggerChildren: 0.05,
+      staggerDirection: -1,
     },
-    open: {
-      opacity: 1,
-      transition: {
-        duration: 0.4,
-        ease: [0.16, 1, 0.3, 1],
-        staggerChildren: 0.08,
-        delayChildren: 0.1,
-      },
+  },
+  open: {
+    opacity: 1,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0, 0.2, 1] as const,
+      staggerChildren: 0.07,
+      delayChildren: 0.2,
     },
-  };
+  },
+};
 
   const itemVariants = {
     closed: { opacity: 0, y: 20 },
     open: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const },
     },
   };
 

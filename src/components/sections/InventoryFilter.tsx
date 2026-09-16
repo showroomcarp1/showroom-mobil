@@ -26,7 +26,7 @@ const BRAND_OPTIONS = [
 ];
 
 // Opsi Transmisi dengan tambahan Hybrid
-const TRANSMISSION_OPTIONS = ["Automatic", "Manual", "Hybrid"];
+const TRANSMISSION_OPTIONS = ["Automatic", "Manually", "Hybrid"];
 
 interface InventoryFilterProps {
   currentFilters?: {

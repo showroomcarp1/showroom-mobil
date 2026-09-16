@@ -106,14 +106,14 @@ export default function Footer() {
                   icon={faPhone}
                   className="h-4 w-4 text-neutral-400 flex-shrink-0"
                 />
-                <span className="text-neutral-300">+62 812-3456-7890</span>
+                <span className="text-neutral-300">+62 821-1396-3222</span>
               </li>
               <li className="flex items-center gap-3.5">
                 <FontAwesomeIcon
                   icon={faEnvelope}
                   className="h-4 w-4 text-neutral-400 flex-shrink-0"
                 />
-                <span className="text-neutral-300">info@autolux.co.id</span>
+                <span className="text-neutral-300">adm.autohigh@gmail.com</span>
               </li>
             </ul>
           </div>

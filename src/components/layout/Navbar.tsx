@@ -16,14 +16,15 @@ import {
   faLinkedinIn,
 } from "@fortawesome/free-brands-svg-icons";
 import BrandsMegaMenu from "./BrandsMegaMenu";
+import { createClient } from "@/lib/supabase/client";
 
 // Data Navigasi
 const NAV_ITEMS = [
   { href: "/brands", label: "Brands", hasDropdown: true },
-  { href: "/appointment", label: "Appointment" },
-  { href: "/promo", label: "Special Offers" },
-  { href: "/about", label: "About Us" },
-  { href: "/contact", label: "Contact" },
+  { href: "/newcar", label: "New Cars" },
+  { href: "/secondcar", label: "Second Cars" },
+  { href: "/exclusive", label: "Exclusive" },
+  { href: "/facility", label: "Our Facilities" },
 ];
 
 // Data Social Media
@@ -95,6 +96,32 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isBrandsHovered, setIsBrandsHovered] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const supabase = createClient();
+
+  // Cek status sesi user dari Supabase Auth
+  useEffect(() => {
+    const checkUserSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+
+    checkUserSession();
+
+    // Listener perubahan status auth (login / logout)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   // Lock scroll saat menu terbuka
   useEffect(() => {
@@ -323,20 +350,20 @@ export default function Navbar() {
                 transition={{ duration: 0.6, delay: 0.2, ease: FLUID_EASE }}
                 className="pt-8 border-t border-white/10 space-y-6 shrink-0 relative z-10"
               >
-                {/* Login Button */}
+                {/* Dynamic Login / Dashboard Link */}
                 <div>
                   <Link
-                    href="/admin/login"
+                    href={isLoggedIn ? "/admin/dashboard" : "/admin/login"}
                     onClick={closeMenu}
                     className="group inline-flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] font-medium text-neutral-400 hover:text-white transition-colors duration-800 ease-in-out"
                   >
-                    <span className="w-7 h-7  flex items-center justify-center  transition-all duration-800 ease-in-out">
+                    <span className="w-7 h-7 flex items-center justify-center transition-all duration-800 ease-in-out">
                       <FontAwesomeIcon
                         icon={faUser}
                         className="text-[11px] text-neutral-400 group-hover:text-white transition-colors duration-800"
                       />
                     </span>
-                    <span>Login</span>
+                    <span>{isLoggedIn ? "Dashboard" : "Login"}</span>
                   </Link>
                 </div>
 

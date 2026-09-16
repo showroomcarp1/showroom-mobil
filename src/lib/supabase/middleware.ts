@@ -16,24 +16,35 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
           supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Redirect ke login jika mencoba akses /admin/dashboard tanpa autentikasi
-  if (!user && request.nextUrl.pathname.startsWith("/admin/dashboard")) {
+  const pathname = request.nextUrl.pathname;
+
+  // Redirect ke dashboard jika user SUDAH login tapi mencoba akses halaman login
+  if (user && pathname.startsWith("/admin/login")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/dashboard";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect ke login jika BELUM login tapi mencoba akses area admin
+  if (!user && pathname.startsWith("/admin/dashboard")) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     return NextResponse.redirect(url);

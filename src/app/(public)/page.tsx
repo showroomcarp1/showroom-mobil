@@ -2,57 +2,27 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroSlider from "@/components/sections/HeroSlider";
 import CarCard from "@/components/sections/CarCard";
-import { Car } from "@/types/car";
+import { createClient } from "@/lib/supabase/server";
+import { Car } from "@/types/cars";
 
-// Data dummy untuk tampilan awal
-const dummyCars: Car[] = [
-  {
-    id: "1",
-    slug: "toyota-alphard-2024",
-    brand: "Toyota",
-    model: "Alphard",
-    variant: "2.5 HEV Executive Lounge",
-    year: 2024,
-    transmission: "Automatic",
-    fuel_type: "Hybrid",
-    price: 1650000000,
-    discount_price: 35000000,
-    image_url:
-      "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=800",
-    status: "available",
-  },
-  {
-    id: "2",
-    slug: "bmw-330i-msport-2023",
-    brand: "BMW",
-    model: "330i",
-    variant: "M Sport LCI",
-    year: 2023,
-    transmission: "Automatic",
-    fuel_type: "Bensin",
-    price: 1240000000,
-    discount_price: 50000000,
-    image_url:
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=800",
-    status: "available",
-  },
-  {
-    id: "3",
-    slug: "hyundai-ioniq-6-2024",
-    brand: "Hyundai",
-    model: "Ioniq 6",
-    variant: "Signature AWD",
-    year: 2024,
-    transmission: "Automatic",
-    fuel_type: "Electric",
-    price: 1220000000,
-    image_url:
-      "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?q=80&w=800",
-    status: "available",
-  },
-];
+export const revalidate = 0; // Memastikan data selalu fresh
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+
+  // Query katalog mobil dari Supabase
+  const { data: cars, error } = await supabase
+    .from("cars")
+    .select("*")
+    .eq("status", "available")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Gagal mengambil data mobil:", error.message);
+  }
+
+  const carList: Car[] = cars || [];
+
   return (
     <>
       <Navbar />
@@ -74,12 +44,20 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Grid Mobil */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {dummyCars.map((car) => (
-                <CarCard key={car.id} car={car} />
-              ))}
-            </div>
+            {/* Grid Mobil / Empty State */}
+            {carList.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {carList.map((car) => (
+                  <CarCard key={car.id} car={car} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-neutral-200 p-12 text-center">
+                <p className="text-sm font-medium text-neutral-500">
+                  Belum ada unit mobil yang tersedia saat ini.
+                </p>
+              </div>
+            )}
           </div>
         </section>
       </main>

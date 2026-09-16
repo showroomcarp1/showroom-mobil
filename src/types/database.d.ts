@@ -1,4 +1,4 @@
-import { CarStatus, FuelType, TransmissionType } from "./car";
+import { CarStatus, ConditionType, FuelType, TransmissionType } from "./cars";
 
 export interface Database {
   public: {
@@ -7,10 +7,13 @@ export interface Database {
         Row: {
           id: string;
           slug: string;
+          title: string;
           brand: string;
           model: string;
           variant: string;
           year: number;
+          condition: ConditionType;
+          mileage: number | null;
           transmission: TransmissionType;
           fuel_type: FuelType;
           price: number;
@@ -26,9 +29,15 @@ export interface Database {
         Insert: Omit<
           Database["public"]["Tables"]["cars"]["Row"],
           "id" | "created_at" | "updated_at"
-        >;
+        > & {
+          condition?: ConditionType;
+        };
         Update: Partial<Database["public"]["Tables"]["cars"]["Insert"]>;
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 }

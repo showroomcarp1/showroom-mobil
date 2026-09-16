@@ -9,7 +9,7 @@ export const CAR_BRANDS = [
   "Mazda",
 ] as const;
 
-export const TRANSMISSION_OPTIONS = ["Automatic", "Manual"] as const;
+export const TRANSMISSION_OPTIONS = ["Automatic", "Manually"] as const;
 
 export const FUEL_OPTIONS = ["Bensin", "Diesel", "Hybrid", "Electric"] as const;
 

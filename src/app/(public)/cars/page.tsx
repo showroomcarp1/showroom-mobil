@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import InventoryFilter from "@/components/sections/InventoryFilter";
 import CarCard from "@/components/sections/CarCard";
-import { Car } from "@/types/car";
+import { Car } from "@/types/cars";
 
 export const revalidate = 0;
 
