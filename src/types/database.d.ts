@@ -20,9 +20,12 @@ export interface Database {
           discount_price: number | null;
           image_url: string | null;
           images: string[] | null;
+          exterior_images: string[] | null;
+          interior_images: string[] | null;
           description: string | null;
           features: string[] | null;
           status: CarStatus;
+          views: number;
           created_at: string;
           updated_at: string;
         };

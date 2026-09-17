@@ -28,6 +28,8 @@ export interface CreateCarInput {
   description?: string;
   status?: CarStatus;
   images?: string[];
+  exterior_images?: string[];
+  interior_images?: string[];
   image_url?: string;
   slug: string;
   views?: number;
@@ -35,9 +37,6 @@ export interface CreateCarInput {
 
 export type UpdateCarInput = Partial<CreateCarInput>;
 
-/**
- * Menyimpan data unit mobil baru ke Supabase
- */
 export async function createCar(data: CreateCarInput): Promise<void> {
   const supabase = await createClient();
 
@@ -56,9 +55,12 @@ export async function createCar(data: CreateCarInput): Promise<void> {
     description: data.description ?? null,
     status: data.status ?? "available",
     images: data.images ?? null,
-    image_url: data.image_url ?? null,
+    exterior_images: data.exterior_images ?? null,
+    interior_images: data.interior_images ?? null,
+    image_url: data.image_url ?? (data.images?.[0] || null),
     slug: data.slug,
     views: data.views ?? 0,
+    features: null,
   };
 
   const { error } = await supabase.from("cars").insert(payload);
@@ -71,9 +73,6 @@ export async function createCar(data: CreateCarInput): Promise<void> {
   revalidatePath("/");
 }
 
-/**
- * Memperbarui data unit mobil berdasarkan ID
- */
 export async function updateCar(
   id: string,
   data: UpdateCarInput,
@@ -97,6 +96,12 @@ export async function updateCar(
     ...(data.description !== undefined && { description: data.description }),
     ...(data.status !== undefined && { status: data.status }),
     ...(data.images !== undefined && { images: data.images }),
+    ...(data.exterior_images !== undefined && {
+      exterior_images: data.exterior_images,
+    }),
+    ...(data.interior_images !== undefined && {
+      interior_images: data.interior_images,
+    }),
     ...(data.image_url !== undefined && { image_url: data.image_url }),
     ...(data.slug !== undefined && { slug: data.slug }),
     ...(data.views !== undefined && { views: data.views }),
@@ -113,9 +118,6 @@ export async function updateCar(
   revalidatePath("/");
 }
 
-/**
- * Menghapus data unit mobil berdasarkan ID
- */
 export async function deleteCar(id: string): Promise<void> {
   const supabase = await createClient();
 
@@ -129,18 +131,13 @@ export async function deleteCar(id: string): Promise<void> {
   revalidatePath("/");
 }
 
-/**
- * Menambah hitungan klik/view saat mobil diklik oleh pengunjung
- */
 export async function incrementCarViews(carId: string): Promise<void> {
   const supabase = await createClient();
 
-  // Mencoba lewat RPC atomik Supabase
   const { error: rpcError } = await supabase.rpc("increment_car_views", {
     car_id: carId,
   });
 
-  // Fallback jika RPC function belum dikonfigurasi di PostgreSQL
   if (rpcError) {
     const { data } = await supabase
       .from("cars")
@@ -159,9 +156,6 @@ export async function incrementCarViews(carId: string): Promise<void> {
   revalidatePath("/");
 }
 
-/**
- * Mengambil daftar mobil trending berdasarkan jumlah klik/views terbanyak
- */
 export async function getTrendingCars(limit = 6): Promise<CarRow[]> {
   const supabase = await createClient();
 

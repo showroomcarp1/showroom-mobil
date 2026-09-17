@@ -32,6 +32,8 @@ export interface Car {
   discount_price?: number;
   image_url?: string;
   images?: string[];
+  exterior_images?: string[];
+  interior_images?: string[];
   description?: string;
   features?: string[];
   status: CarStatus;

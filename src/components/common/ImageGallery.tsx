@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -10,24 +10,29 @@ interface ImageGalleryProps {
 }
 
 export default function ImageGallery({ images, altText }: ImageGalleryProps) {
-  // Indeks foto aktif
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Jika gambar kosong, gunakan gambar default
   const activeImages =
-    images.length > 0 ? images : ["/images/placeholders/car-placeholder.jpg"];
+    images && images.length > 0
+      ? images
+      : ["/images/placeholders/car-placeholder.jpg"];
+
+  // Wajib: Reset pilihan gambar ke indeks 0 setiap kali array images berubah (pindah tab)
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [images]);
 
   return (
     <div className="space-y-3">
       {/* Container Gambar Utama */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-neutral-200/80 bg-neutral-100">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-100">
         <AnimatePresence mode="wait">
           <motion.div
-            key={selectedIndex}
+            key={activeImages[selectedIndex] || selectedIndex}
             initial={{ opacity: 0.8 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0.8 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.15 }}
             className="h-full w-full"
           >
             <Image
@@ -36,23 +41,23 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 60vw"
-              className="object-cover"
+              className="object-cover object-center"
             />
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Grid Thumbnail Gambar */}
+      {/* Grid Thumbnail Gambar (Kotak & Tajam) */}
       {activeImages.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
           {activeImages.map((img, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedIndex(idx)}
-              className={`relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border transition-all ${
+              className={`relative h-20 w-32 flex-shrink-0 overflow-hidden border-2 transition-all cursor-pointer ${
                 selectedIndex === idx
-                  ? "border-neutral-900 ring-2 ring-neutral-900/10"
-                  : "border-neutral-200 opacity-60 hover:opacity-100"
+                  ? "border-red-600 opacity-100"
+                  : "border-transparent opacity-50 hover:opacity-100"
               }`}
               aria-label={`Pilih gambar ${idx + 1}`}
             >
@@ -60,7 +65,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                 src={img}
                 alt={`${altText} thumbnail ${idx + 1}`}
                 fill
-                className="object-cover"
+                className="object-cover object-center"
               />
             </button>
           ))}

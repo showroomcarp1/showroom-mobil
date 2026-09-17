@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import ImageGallery from "@/components/common/ImageGallery";
+import Link from "next/link";
 import CreditCalculator from "@/components/sections/CreditCalculator";
+import CarDetailContent from "@/components/sections/CarDetailContent";
 import FontAwesomeIcon from "@/components/common/FontAwesomeIcon";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import {
@@ -9,19 +10,25 @@ import {
   faGears,
   faCalendar,
   faRoad,
+  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Car } from "@/types/cars";
+import type { Car, ConditionType } from "@/types/cars";
 
 interface CarDetailPageProps {
   params: Promise<{ slug: string }>;
 }
+
+const conditionBreadcrumbLabel: Record<ConditionType, string> = {
+  New: "NEW CAR",
+  Used: "USED CAR",
+  Exclusive: "EXCLUSIVE CAR",
+};
 
 export default async function CarDetailPage({ params }: CarDetailPageProps) {
   const resolvedParams = await params;
   const rawParam = decodeURIComponent(resolvedParams.slug);
   const supabase = await createClient();
 
-  // 1. Cari berdasarkan 'slug'
   const { data: carBySlug } = await supabase
     .from("cars")
     .select("*")
@@ -30,7 +37,6 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
 
   let car = carBySlug as Car | null;
 
-  // 2. Fallback: Cari berdasarkan 'id' jika slug tidak ditemukan
   if (!car) {
     const { data: carById } = await supabase
       .from("cars")
@@ -52,102 +58,117 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
   const carTitle =
     car.title || `${car.brand} ${car.model} ${car.variant || ""}`.trim();
 
-  const carImages: string[] =
-    car.images && car.images.length > 0
-      ? car.images
-      : car.image_url
-        ? [car.image_url]
-        : ["/placeholder-car.png"];
-
-  // Format Mileage dengan aman (baik bertipe number maupun string)
-  const formattedMileage =
-    car.mileage !== undefined && car.mileage !== null
-      ? typeof car.mileage === "number"
-        ? car.mileage.toLocaleString("id-ID")
-        : Number(car.mileage).toLocaleString("id-ID")
-      : null;
-
   return (
-    <main className="py-28 bg-white">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-          {/* Gallery & Deskripsi */}
-          <div className="lg:col-span-7 space-y-8">
-            <ImageGallery images={carImages} altText={carTitle} />
-            <article className="border-t border-neutral-100 pt-6">
-              <h2 className="text-lg font-bold text-neutral-900">
-                Deskripsi Kendaraan
-              </h2>
-              <p className="mt-2 text-xs leading-relaxed text-neutral-600 whitespace-pre-line">
-                {car.description ||
-                  "Tidak ada deskripsi tambahan untuk unit ini."}
-              </p>
-            </article>
-          </div>
+    <main className="bg-white pt-6 pb-20 text-neutral-900">
+      {/* SEMANTIC BREADCRUMB */}
+      <nav
+        aria-label="Breadcrumb"
+        className="border-b border-neutral-100 bg-white py-2"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <ol className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-neutral-500 overflow-x-auto whitespace-nowrap">
+            <li>
+              <Link href="/" className="hover:text-black transition-colors">
+                HOME
+              </Link>
+            </li>
+            <FontAwesomeIcon
+              icon={faChevronRight}
+              className="h-2 w-2 text-neutral-300"
+            />
+            <li>
+              <Link href="/cars" className="hover:text-black transition-colors">
+                {conditionBreadcrumbLabel[car.condition] || "CAR"}
+              </Link>
+            </li>
+            <FontAwesomeIcon
+              icon={faChevronRight}
+              className="h-2 w-2 text-neutral-300"
+            />
+            <li>
+              <span className="text-neutral-500">{car.brand}</span>
+            </li>
+            <FontAwesomeIcon
+              icon={faChevronRight}
+              className="h-2 w-2 text-neutral-300"
+            />
+            <li className="text-black font-black truncate max-w-[200px]">
+              {carTitle}
+            </li>
+          </ol>
+        </div>
+      </nav>
 
-          {/* Sidebar Detail & Kredit */}
-          <aside className="lg:col-span-5 space-y-6">
-            <div className="rounded-2xl border border-neutral-200 p-6 space-y-4">
+      {/* MAIN CONTAINER */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
+          {/* KONTEN UTAMA: Menangani Nav Tab Interaktif & Galeri */}
+          <section className="lg:col-span-7 space-y-6">
+            <CarDetailContent car={car} />
+          </section>
+
+          {/* SIDEBAR KANAN: Detail & Simulasi */}
+          <aside className="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
+            <div className="border border-neutral-200 bg-white p-6 space-y-6 rounded-none">
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
                   {car.brand}
                 </span>
-                <h1 className="text-2xl font-extrabold text-neutral-900">
+                <h1 className="text-2xl font-black text-neutral-900 tracking-tight mt-0.5">
                   {carTitle}
                 </h1>
               </div>
 
-              <div className="flex items-center justify-between border-y border-neutral-100 py-3 text-xs text-neutral-600">
-                <div className="flex items-center gap-1.5">
+              <div className="grid grid-cols-4 gap-2 border-y border-neutral-100 py-4 text-center text-xs text-neutral-800">
+                <div className="flex flex-col items-center gap-1.5">
                   <FontAwesomeIcon
                     icon={faCalendar}
-                    className="text-neutral-400"
+                    className="h-4 w-4 text-neutral-400"
                   />
-                  <span>{car.year}</span>
+                  <span className="font-bold text-[11px]">{car.year}</span>
                 </div>
-                {formattedMileage && (
-                  <div className="flex items-center gap-1.5">
-                    <FontAwesomeIcon
-                      icon={faRoad}
-                      className="text-neutral-400"
-                    />
-                    <span>{formattedMileage} km</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5">
+                <div className="flex flex-col items-center gap-1.5">
+                  <FontAwesomeIcon
+                    icon={faRoad}
+                    className="h-4 w-4 text-neutral-400"
+                  />
+                  <span className="font-bold text-[11px]">
+                    {car.mileage
+                      ? `${Number(car.mileage).toLocaleString("id-ID")} km`
+                      : "-"}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center gap-1.5">
                   <FontAwesomeIcon
                     icon={faGears}
-                    className="text-neutral-400"
+                    className="h-4 w-4 text-neutral-400"
                   />
-                  <span>{car.transmission}</span>
+                  <span className="font-bold text-[11px]">
+                    {car.transmission}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex flex-col items-center gap-1.5">
                   <FontAwesomeIcon
                     icon={faGasPump}
-                    className="text-neutral-400"
+                    className="h-4 w-4 text-neutral-400"
                   />
-                  <span>{car.fuel_type}</span>
+                  <span className="font-bold text-[11px]">{car.fuel_type}</span>
                 </div>
               </div>
 
               <div>
-                {Boolean(car.discount_price && car.discount_price > 0) && (
-                  <span className="block text-xs text-neutral-400 line-through">
-                    Rp {car.price.toLocaleString("id-ID")}
-                  </span>
-                )}
-                <span className="text-2xl font-black text-red-600">
+                <div className="text-2xl font-black text-red-600 tracking-tight">
                   Rp {finalPrice.toLocaleString("id-ID")}
-                </span>
+                </div>
               </div>
 
               <a
                 href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                  `Halo, saya tertarik dengan unit ${carTitle}. Apakah masih tersedia?`,
+                  `Halo, saya tertarik dengan unit ${carTitle}.`,
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors"
+                className="flex w-full items-center justify-center gap-2.5 rounded-none bg-emerald-600 hover:bg-emerald-700 py-3.5 text-xs font-black uppercase tracking-widest text-white transition-colors"
               >
                 <FontAwesomeIcon icon={faWhatsapp} className="h-4 w-4" />
                 Tanya Sales via WhatsApp

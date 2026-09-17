@@ -18,6 +18,8 @@ interface CarFormProps {
   initialData?: Car | null;
 }
 
+type ImageCategory = "images" | "exterior_images" | "interior_images";
+
 function generateSlug(text: string): string {
   return text
     .toLowerCase()
@@ -30,11 +32,13 @@ function generateSlug(text: string): string {
 export default function CarForm({ initialData }: CarFormProps) {
   const router = useRouter();
   const supabase = createClient();
+
   const [loading, setLoading] = useState<boolean>(false);
-  const [uploading, setUploading] = useState<boolean>(false);
+  const [uploadingCategory, setUploadingCategory] =
+    useState<ImageCategory | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
-  // State untuk menampung URL Gambar hasil Upload/Initial Data
+  // State terpisah untuk masing-masing kategori gambar
   const [images, setImages] = useState<string[]>(
     initialData?.images && initialData.images.length > 0
       ? initialData.images
@@ -42,14 +46,49 @@ export default function CarForm({ initialData }: CarFormProps) {
         ? [initialData.image_url]
         : [],
   );
+  const [exteriorImages, setExteriorImages] = useState<string[]>(
+    initialData?.exterior_images || [],
+  );
+  const [interiorImages, setInteriorImages] = useState<string[]>(
+    initialData?.interior_images || [],
+  );
 
-  // Handler Upload Foto Lokal ke Supabase Storage
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Helper untuk mendapatkan setter berdasarkan kategori
+  const getCategorySetter = (category: ImageCategory) => {
+    switch (category) {
+      case "exterior_images":
+        return setExteriorImages;
+      case "interior_images":
+        return setInteriorImages;
+      default:
+        return setImages;
+    }
+  };
+
+  // Helper untuk mendapatkan list URL berdasarkan kategori
+  const getCategoryList = (category: ImageCategory) => {
+    switch (category) {
+      case "exterior_images":
+        return exteriorImages;
+      case "interior_images":
+        return interiorImages;
+      default:
+        return images;
+    }
+  };
+
+  // Handler Upload Foto Universal per Kategori ke Supabase Storage
+  const handleFileUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    category: ImageCategory,
+  ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    setUploading(true);
+    setUploadingCategory(category);
     setErrorMsg("");
+
+    const setList = getCategorySetter(category);
 
     try {
       const uploadedUrls: string[] = [];
@@ -60,7 +99,6 @@ export default function CarForm({ initialData }: CarFormProps) {
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `cars/${fileName}`;
 
-        // Upload file ke bucket 'car-images' di Supabase
         const { error: uploadError } = await supabase.storage
           .from("car-images")
           .upload(filePath, file);
@@ -71,7 +109,6 @@ export default function CarForm({ initialData }: CarFormProps) {
           );
         }
 
-        // Ambil Public URL setelah sukses upload
         const { data: publicUrlData } = supabase.storage
           .from("car-images")
           .getPublicUrl(filePath);
@@ -79,7 +116,7 @@ export default function CarForm({ initialData }: CarFormProps) {
         uploadedUrls.push(publicUrlData.publicUrl);
       }
 
-      setImages((prev) => [...prev, ...uploadedUrls]);
+      setList((prev) => [...prev, ...uploadedUrls]);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setErrorMsg(err.message);
@@ -87,14 +124,15 @@ export default function CarForm({ initialData }: CarFormProps) {
         setErrorMsg("Terjadi kesalahan saat mengunggah foto.");
       }
     } finally {
-      setUploading(false);
-      // Reset value input file agar bisa memilih file yang sama jika perlu
+      setUploadingCategory(null);
       e.target.value = "";
     }
   };
 
-  const handleRemoveImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+  // Handler Hapus Gambar per Kategori
+  const handleRemoveImage = (category: ImageCategory, index: number) => {
+    const setList = getCategorySetter(category);
+    setList((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -134,7 +172,9 @@ export default function CarForm({ initialData }: CarFormProps) {
       description: (formData.get("description") as string) || "",
       status: (formData.get("status") as CarStatus) || "available",
       images: images,
-      image_url: images[0] || "",
+      exterior_images: exteriorImages,
+      interior_images: interiorImages,
+      image_url: images[0] || exteriorImages[0] || interiorImages[0] || "",
     };
 
     try {
@@ -155,273 +195,337 @@ export default function CarForm({ initialData }: CarFormProps) {
     }
   };
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-2xl rounded-2xl border border-neutral-200 bg-white p-6 space-y-5 shadow-sm"
-    >
-      {errorMsg && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 font-medium">
-          {errorMsg}
-        </div>
-      )}
+  // Sub-komponen UI untuk Section Pengelolaan Gambar
+  const renderImageUploader = (
+    category: ImageCategory,
+    title: string,
+    description: string,
+  ) => {
+    const currentList = getCategoryList(category);
+    const isUploading = uploadingCategory === category;
 
-      {/* Upload Foto dari Komputer (File Input) */}
-      <div className="space-y-2 border-b border-neutral-100 pb-4">
-        <label className="block text-xs font-semibold text-neutral-700">
-          Upload Foto Mobil dari Perangkat
-        </label>
+    return (
+      <section className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/50 p-4">
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200/80 pb-3">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900">
+              {title}{" "}
+              <span className="text-neutral-500">({currentList.length})</span>
+            </h3>
+            <p className="text-[11px] text-neutral-500">{description}</p>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <label className="cursor-pointer rounded-xl bg-neutral-900 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800 transition-colors">
-            {uploading ? "Mengunggah..." : "Pilih File Foto"}
+          <label className="cursor-pointer rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-neutral-800">
+            {isUploading ? "Mengunggah..." : "+ Unggah Foto"}
             <input
               type="file"
               accept="image/*"
               multiple
-              disabled={uploading}
-              onChange={handleFileUpload}
+              disabled={uploadingCategory !== null}
+              onChange={(e) => handleFileUpload(e, category)}
               className="hidden"
             />
           </label>
-          <span className="text-[11px] text-neutral-500">
-            Bisa pilih lebih dari satu foto (.jpg, .png, .webp)
-          </span>
-        </div>
+        </header>
 
-        {/* Preview Galeri Foto */}
-        {images.length > 0 && (
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mt-3">
-            {images.map((url, idx) => (
-              <div
-                key={idx}
-                className="relative group aspect-video rounded-lg border border-neutral-200 overflow-hidden bg-neutral-50"
+        {currentList.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-1">
+            {currentList.map((url, idx) => (
+              <figure
+                key={`${category}-${idx}`}
+                className="group relative aspect-video rounded-lg border border-neutral-200 bg-white overflow-hidden shadow-sm"
               >
                 <Image
                   src={url}
-                  alt={`Preview ${idx + 1}`}
+                  alt={`${title} ${idx + 1}`}
                   fill
-                  className="object-cover"
+                  sizes="(max-width: 640px) 50vw, 25vw"
+                  className="object-cover transition-transform duration-200 group-hover:scale-105"
                 />
                 <button
                   type="button"
-                  onClick={() => handleRemoveImage(idx)}
-                  className="absolute top-1 right-1 bg-red-600 text-white text-[10px] rounded px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleRemoveImage(category, idx)}
+                  className="absolute top-1.5 right-1.5 rounded bg-red-600/90 px-2 py-0.5 text-[10px] font-medium text-white shadow-sm backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-700"
                 >
                   Hapus
                 </button>
-              </div>
+              </figure>
             ))}
           </div>
+        ) : (
+          <p className="py-2 text-center text-[11px] italic text-neutral-400">
+            Belum ada foto dalam kategori ini.
+          </p>
         )}
-      </div>
+      </section>
+    );
+  };
 
-      {/* Judul & Slug */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Judul Tampilan Mobil
-          </label>
-          <input
-            name="title"
-            defaultValue={initialData?.title || ""}
-            placeholder="Honda Civic RS Turbo"
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          />
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-3xl rounded-2xl border border-neutral-200 bg-white p-6 space-y-6 shadow-sm"
+    >
+      {errorMsg && (
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 font-medium"
+        >
+          {errorMsg}
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Slug URL Custom
-          </label>
-          <input
-            name="slug"
-            defaultValue={initialData?.slug || ""}
-            placeholder="honda-civic-rs-turbo"
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          />
-        </div>
-      </div>
+      )}
 
-      {/* Brand, Model, Varian */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Merek
-          </label>
-          <input
-            name="brand"
-            defaultValue={initialData?.brand || ""}
-            required
-            placeholder="Merek"
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Model
-          </label>
-          <input
-            name="model"
-            defaultValue={initialData?.model || ""}
-            required
-            placeholder="Model"
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Varian
-          </label>
-          <input
-            name="variant"
-            defaultValue={initialData?.variant || ""}
-            placeholder="Varian"
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          />
-        </div>
-      </div>
+      {/* --- SECTION 1: MANAJEMEN FOTO GALERI --- */}
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-bold text-neutral-900 border-b border-neutral-100 pb-2 w-full">
+          Galeri Foto Kendaraan
+        </legend>
 
-      {/* Spesifikasi Teknis & Kondisi */}
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Kondisi Unit
-          </label>
-          <select
-            name="condition"
-            defaultValue={initialData?.condition || "New"}
-            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          >
-            <option value="New">Baru (New)</option>
-            <option value="Used">Bekas (Used)</option>
-            <option value="Exclusive">Esklusif (Exclusive)</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Tahun
-          </label>
-          <input
-            type="number"
-            name="year"
-            defaultValue={initialData?.year || new Date().getFullYear()}
-            required
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Kilometer
-          </label>
-          <input
-            type="number"
-            name="mileage"
-            defaultValue={initialData?.mileage || 0}
-            placeholder="0"
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Transmisi
-          </label>
-          <select
-            name="transmission"
-            defaultValue={initialData?.transmission || TRANSMISSION_OPTIONS[0]}
-            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          >
-            {TRANSMISSION_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Bahan Bakar
-          </label>
-          <select
-            name="fuel_type"
-            defaultValue={initialData?.fuel_type || FUEL_OPTIONS[0]}
-            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          >
-            {FUEL_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+        {renderImageUploader(
+          "images",
+          "Foto Utama (Hero)",
+          "Foto yang muncul sebagai banner/cover utama kartu mobil.",
+        )}
 
-      {/* Harga & Status */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {renderImageUploader(
+          "exterior_images",
+          "Galeri Eksterior",
+          "Foto bodi luar, velg, lampu, dan tampak samping/belakang.",
+        )}
+
+        {renderImageUploader(
+          "interior_images",
+          "Galeri Interior",
+          "Foto kemudi, dasbor, jok, bagasi, dan fitur kabin.",
+        )}
+      </fieldset>
+
+      {/* --- SECTION 2: IDENTITAS UNIT --- */}
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-bold text-neutral-900 border-b border-neutral-100 pb-2 w-full">
+          Identitas Kendaraan
+        </legend>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Judul Tampilan Mobil
+            </label>
+            <input
+              name="title"
+              defaultValue={initialData?.title || ""}
+              placeholder="Honda Civic RS Turbo"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Slug URL Custom
+            </label>
+            <input
+              name="slug"
+              defaultValue={initialData?.slug || ""}
+              placeholder="honda-civic-rs-turbo"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Merek
+            </label>
+            <input
+              name="brand"
+              defaultValue={initialData?.brand || ""}
+              required
+              placeholder="Honda"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Model
+            </label>
+            <input
+              name="model"
+              defaultValue={initialData?.model || ""}
+              required
+              placeholder="Civic"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Varian
+            </label>
+            <input
+              name="variant"
+              defaultValue={initialData?.variant || ""}
+              placeholder="RS Turbo"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+        </div>
+      </fieldset>
+
+      {/* --- SECTION 3: SPESIFIKASI TEKNIS --- */}
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-bold text-neutral-900 border-b border-neutral-100 pb-2 w-full">
+          Spesifikasi Teknis
+        </legend>
+
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Kondisi Unit
+            </label>
+            <select
+              name="condition"
+              defaultValue={initialData?.condition || "New"}
+              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            >
+              <option value="New">Baru (New)</option>
+              <option value="Used">Bekas (Used)</option>
+              <option value="Exclusive">Eksklusif (Exclusive)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Tahun
+            </label>
+            <input
+              type="number"
+              name="year"
+              defaultValue={initialData?.year || new Date().getFullYear()}
+              required
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Kilometer
+            </label>
+            <input
+              type="number"
+              name="mileage"
+              defaultValue={initialData?.mileage || 0}
+              placeholder="0"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Transmisi
+            </label>
+            <select
+              name="transmission"
+              defaultValue={
+                initialData?.transmission || TRANSMISSION_OPTIONS[0]
+              }
+              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            >
+              {TRANSMISSION_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Bahan Bakar
+            </label>
+            <select
+              name="fuel_type"
+              defaultValue={initialData?.fuel_type || FUEL_OPTIONS[0]}
+              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            >
+              {FUEL_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      {/* --- SECTION 4: HARGA, STATUS & DESKRIPSI --- */}
+      <fieldset className="space-y-4">
+        <legend className="text-sm font-bold text-neutral-900 border-b border-neutral-100 pb-2 w-full">
+          Harga & Publikasi
+        </legend>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Harga OTR (Rp)
+            </label>
+            <input
+              type="number"
+              name="price"
+              defaultValue={initialData?.price || ""}
+              required
+              placeholder="Masukkan Harga"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Diskon (Rp)
+            </label>
+            <input
+              type="number"
+              name="discount_price"
+              defaultValue={initialData?.discount_price || 0}
+              placeholder="0"
+              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+              Status Unit
+            </label>
+            <select
+              name="status"
+              defaultValue={initialData?.status || "available"}
+              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            >
+              <option value="available">Tersedia</option>
+              <option value="sold">Terjual</option>
+            </select>
+          </div>
+        </div>
+
         <div>
           <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Harga OTR (Rp)
+            Deskripsi Unit
           </label>
-          <input
-            type="number"
-            name="price"
-            defaultValue={initialData?.price || ""}
-            required
-            placeholder="Masukkan Harga"
+          <textarea
+            name="description"
+            rows={4}
+            defaultValue={initialData?.description || ""}
+            placeholder="Tulis deskripsi kondisi kendaraan..."
             className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
           />
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Diskon (Rp)
-          </label>
-          <input
-            type="number"
-            name="discount_price"
-            defaultValue={initialData?.discount_price || 0}
-            placeholder="0"
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Status Unit
-          </label>
-          <select
-            name="status"
-            defaultValue={initialData?.status || "available"}
-            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-          >
-            <option value="available">Tersedia</option>
-            <option value="sold">Terjual</option>
-          </select>
-        </div>
-      </div>
+      </fieldset>
 
-      {/* Deskripsi */}
-      <div>
-        <label className="block text-xs font-semibold text-neutral-700 mb-1">
-          Deskripsi
-        </label>
-        <textarea
-          name="description"
-          rows={4}
-          defaultValue={initialData?.description || ""}
-          placeholder="Tulis deskripsi kondisi kendaraan..."
-          className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-        />
+      <div className="pt-2 border-t border-neutral-100 flex justify-end">
+        <button
+          type="submit"
+          disabled={loading || uploadingCategory !== null}
+          className="rounded-xl bg-neutral-900 px-6 py-2.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 cursor-pointer"
+        >
+          {loading
+            ? "Menyimpan Data..."
+            : initialData
+              ? "Simpan Perubahan"
+              : "Tambah Mobil"}
+        </button>
       </div>
-
-      <button
-        type="submit"
-        disabled={loading || uploading}
-        className="rounded-xl bg-neutral-900 px-5 py-2.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-      >
-        {loading
-          ? "Menyimpan Data..."
-          : initialData
-            ? "Simpan Perubahan"
-            : "Tambah Mobil"}
-      </button>
     </form>
   );
 }
