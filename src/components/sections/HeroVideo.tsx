@@ -17,7 +17,7 @@ const HeroVideo = memo(function HeroVideo({
 
   // fungsi untuk reset video ke detik 0 jika mencapai detik 20
   const handleTimeUpdate = () => {
-    if (videoRef.current && videoRef.current.currentTime >= 20) {
+    if (videoRef.current && videoRef.current.currentTime >= 30) {
       videoRef.current.currentTime = 0;
       // pastikan video tetap berjalan secara seamless
       videoRef.current.play().catch(() => {});
