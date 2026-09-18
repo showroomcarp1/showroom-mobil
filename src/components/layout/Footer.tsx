@@ -36,7 +36,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/cars"
-                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                  className="text-neutral-400 hover:text-white transition-colors duration-700 ease-linear"
                 >
                   Brands
                 </Link>
@@ -44,7 +44,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/promo"
-                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                  className="text-neutral-400 hover:text-white transition-colors duration-700 ease-linear"
                 >
                   New Cars
                 </Link>
@@ -52,7 +52,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                  className="text-neutral-400 hover:text-white transition-colors duration-700 ease-linear"
                 >
                   Second Cars
                 </Link>
@@ -60,7 +60,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                  className="text-neutral-400 hover:text-white transition-colors duration-700 ease-linear"
                 >
                   Exclusive
                 </Link>
@@ -68,7 +68,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                  className="text-neutral-400 hover:text-white transition-colors duration-700 ease-linear"
                 >
                   Our Facilities
                 </Link>
@@ -76,7 +76,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                  className="text-neutral-400 hover:text-white transition-colors duration-700 ease-linear"
                 >
                   About Us
                 </Link>

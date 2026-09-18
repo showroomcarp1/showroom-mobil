@@ -154,7 +154,7 @@ export default function HeroClient() {
                   : {}
               }
               transition={{ duration: 0.3 }}
-              className="relative overflow-hidden w-full sm:w-auto px-10 py-4 border border-white bg-transparent text-white font-extrabold text-base uppercase tracking-widest transition-all duration-800 ease-in hover:bg-white hover:text-black active:scale-[0.98] shadow-2xl cursor-pointer"
+              className="relative overflow-hidden w-full sm:w-auto px-10 py-4 border border-white bg-transparent text-white font-extrabold text-base uppercase tracking-widest transition-all duration-700 ease-in hover:bg-white hover:text-black active:scale-[0.98] shadow-2xl cursor-pointer"
             >
               <span className="relative z-10">Get your dream car</span>
               {/* Overlay pemutih cepat saat zoom berakselerasi */}
@@ -179,7 +179,7 @@ export default function HeroClient() {
                   : { opacity: 1, x: 0 }
               }
               transition={{ duration: 0.25 }}
-              className="w-full sm:w-auto px-10 py-4 border border-white bg-white text-neutral-950 font-extrabold text-base uppercase tracking-widest transition-all duration-800 ease-in hover:bg-transparent hover:text-white active:scale-[0.98] shadow-2xl cursor-pointer"
+              className="w-full sm:w-auto px-10 py-4 border border-white bg-white text-neutral-950 font-extrabold text-base uppercase tracking-widest transition-all duration-700 ease-in hover:bg-transparent hover:text-white active:scale-[0.98] shadow-2xl cursor-pointer"
             >
               Contact US
             </motion.a>

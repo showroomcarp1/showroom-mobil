@@ -48,7 +48,7 @@ export default function LoginPage() {
         <Link
           href="/cars"
           aria-label="back to home page"
-          className="p-2 text-neutral-900 hover:text-neutral-500 transition-colors duration-800 inline-block"
+          className="p-2 text-neutral-900 hover:text-neutral-500 transition-colors duration-700 inline-block"
         >
           <FontAwesomeIcon icon={faXmark} className="h-12 w-12" />
         </Link>

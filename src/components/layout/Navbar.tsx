@@ -17,14 +17,21 @@ import {
 import BrandsMegaMenu from "./BrandsMegaMenu";
 import { createClient } from "@/lib/supabase/client";
 
-// Data Navigasi Statis
-const NAV_ITEMS = [
+// Interface untuk tipe data NavItem agar TypeScript tidak komplain
+interface NavItem {
+  href: string;
+  label: string;
+  hasDropdown?: boolean;
+}
+
+// Data Navigasi Statis dengan Tipe NavItem[]
+const NAV_ITEMS: NavItem[] = [
   { href: "/brands", label: "Brands", hasDropdown: true },
   { href: "/newcar", label: "New Cars" },
   { href: "/secondcar", label: "Second Cars" },
   { href: "/exclusive", label: "Exclusive" },
   { href: "/facility", label: "Our Facilities" },
-] as const;
+];
 
 // Data Social Media Statis
 const SOCIAL_LINKS = [
