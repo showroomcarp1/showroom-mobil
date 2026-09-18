@@ -67,7 +67,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
   return (
     <section aria-label={`Galeri Foto ${altText}`} className="space-y-4">
       {/* Gambar utama dengan elemen semantik figure */}
-      <figure className="group relative aspect-[21/9] sm:aspect-[18/12] w-full overflow-hidden bg-neutral-950">
+      <figure className="group relative aspect-[18/12] sm:aspect-[18/12] w-full overflow-hidden bg-neutral-950">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeImages[selectedIndex] || selectedIndex}
