@@ -6,7 +6,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser } from "@fortawesome/free-solid-svg-icons";
 import {
   faWhatsapp,
   faInstagram,
@@ -98,10 +97,10 @@ export default function Navbar() {
   const [isBrandsHovered, setIsBrandsHovered] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const supabase = createClient();
-
   // Cek status sesi user dari Supabase Auth
   useEffect(() => {
+    const supabase = createClient();
+
     const checkUserSession = async () => {
       const {
         data: { session },
@@ -121,7 +120,7 @@ export default function Navbar() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   // Lock scroll saat menu terbuka
   useEffect(() => {
@@ -185,6 +184,7 @@ export default function Navbar() {
               )}
             </div>
           </Link>
+
           {/* Nav Desktop */}
           <nav
             aria-label="Main Navigation"
@@ -204,11 +204,11 @@ export default function Navbar() {
                 >
                   <Link
                     href={item.href}
-                    className="relative py-1 text-sm md:text-base tracking-[0.15em] font-semibold uppercase text-neutral-900 transition-colors duration-800 hover:text-neutral-500 inline-block"
+                    className="relative py-1 text-sm md:text-base tracking-[0.15em] font-semibold uppercase text-neutral-900 transition-colors duration-300 hover:text-neutral-500 inline-block"
                   >
                     <span>{item.label}</span>
                     <span
-                      className={`absolute bottom-0 left-0 h-[2px] bg-black transition-all duration-800 ease-out ${
+                      className={`absolute bottom-0 left-0 h-[2px] bg-black transition-all duration-300 ease-out ${
                         pathname === item.href ||
                         (item.hasDropdown && isBrandsHovered)
                           ? "w-full"
@@ -220,7 +220,7 @@ export default function Navbar() {
                   {/* Dropdown Mega Menu */}
                   {item.hasDropdown && (
                     <AnimatePresence>
-                      {isBrandsHovered && <BrandsMegaMenu />}
+                      {isBrandsHovered && <BrandsMegaMenu key="mega-menu" />}
                     </AnimatePresence>
                   )}
                 </li>
@@ -240,7 +240,7 @@ export default function Navbar() {
               <div className="relative w-8 h-8 flex items-center justify-center">
                 {/* Garis atas */}
                 <motion.span
-                  className={`absolute w-8 h-[2px] rounded-full block origin-center transition-colors duration-800 ${
+                  className={`absolute w-8 h-[2px] rounded-full block origin-center transition-colors duration-300 ${
                     isMenuOpen
                       ? "bg-white"
                       : "bg-black group-hover:bg-neutral-600"
@@ -257,7 +257,7 @@ export default function Navbar() {
 
                 {/* Garis bawah */}
                 <motion.span
-                  className={`absolute w-8 h-[2px] rounded-full block origin-center transition-colors duration-800 ${
+                  className={`absolute w-8 h-[2px] rounded-full block origin-center transition-colors duration-300 ${
                     isMenuOpen
                       ? "bg-white"
                       : "bg-black group-hover:bg-neutral-600"
@@ -306,7 +306,7 @@ export default function Navbar() {
             >
               {/* Gelombang Kaca Melengkung Sisi Kiri */}
               <div className="absolute top-0 -left-[99px] w-[100px] h-full pointer-events-none fill-black/75">
-                <svg className="w-full h-full preserveAspectRatio-none">
+                <svg className="w-full h-full" preserveAspectRatio="none">
                   <motion.path
                     variants={curveVariants}
                     initial="initial"
@@ -334,7 +334,7 @@ export default function Navbar() {
                       <Link
                         href={item.href}
                         onClick={closeMenu}
-                        className="block text-3xl sm:text-4xl font-semibold tracking-wide text-neutral-400 hover:text-white transition-colors duration-800 ease-in-out"
+                        className="block text-3xl sm:text-4xl font-semibold tracking-wide text-neutral-400 hover:text-white transition-colors duration-300 ease-in-out"
                       >
                         {item.label}
                       </Link>
@@ -372,7 +372,7 @@ export default function Navbar() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={soc.label}
-                        className="p-1 text-neutral-400 hover:text-white transition-colors duration-800 ease-in-out"
+                        className="p-1 text-neutral-400 hover:text-white transition-colors duration-300 ease-in-out"
                       >
                         <FontAwesomeIcon icon={soc.icon} className="h-4 w-4" />
                       </a>
