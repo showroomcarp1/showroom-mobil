@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // PWA generated files (agar tidak ditandai error oleh ESLint v9)
+    "public/sw.js",
+    "public/workbox-*.js",
+    "public/fallback-*.js",
+    "public/swe-worker-*.js",
   ]),
 ]);
 
