@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -48,20 +49,45 @@ export const BRAND_CARDS = [
 ];
 
 export default function BrandsMegaMenu() {
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Deteksi event scroll untuk menampilkan & menyembunyikan scrollbar
+  const handleScroll = () => {
+    setIsScrolling(true);
+
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // Sembunyikan scrollbar setelah 1 detik tidak ada pergerakan
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 8 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className="absolute left-0 top-full mt-7 w-[1100px] bg-white text-neutral-900 shadow- rounded-md border border-neutral-200 z-50 p-8 overflow-visible"
+      className="absolute left-0 top-full mt-7 w-[1100px] bg-white text-neutral-900 shadow-md rounded-md border border-neutral-200 z-50 p-8 overflow-visible"
     >
-      {/* Dropdown  */}
-      <div className="absolute -top-3 left-12 w-6 h-6 bg-white border-t border-l border-neutral-200 rotate-45 z-10" />
+      {/* Dropdown panah */}
+      <div className="absolute -top-3 left-10 w-6 h-6 bg-white border-t border-l border-neutral-200 rotate-45 z-10" />
 
       {/* Header Mega Menu */}
       <header className="pb-4 mb-6 border-b border-neutral-200 relative z-20">
-        <h2 className="text-sm font-black uppercase tracking-widest text-neutral-500">
+        <h2 className="text-[17px] font-black uppercase tracking-widest text-neutral-500">
           Select a brand
         </h2>
       </header>
@@ -69,7 +95,10 @@ export default function BrandsMegaMenu() {
       {/* Navigasi Brand */}
       <nav
         aria-label="Brands Navigation"
-        className="max-h-[600px] overflow-y-auto px-2 custom-scrollbar relative z-20"
+        onScroll={handleScroll}
+        className={`max-h-[600px] overflow-y-auto pt-3 px-2 custom-scrollbar relative z-20 ${
+          isScrolling ? "is-scrolling" : ""
+        }`}
       >
         <ul className="grid grid-cols-3 gap-6 pb-2 group/list">
           {BRAND_CARDS.map((brand) => (
@@ -78,7 +107,7 @@ export default function BrandsMegaMenu() {
                 href={`/cars?brand=${brand.slug}`}
                 className="group block relative z-10 hover:z-30"
               >
-                {/* Frame Foto d */}
+                {/* Frame Foto Brand */}
                 <div className="relative h-56 w-full rounded-md bg-white border border-neutral-200 shadow-sm p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:shadow-md group-hover/list:brightness-50 group-hover:!brightness-100">
                   <Image
                     src={brand.image}
@@ -96,18 +125,27 @@ export default function BrandsMegaMenu() {
 
       {/* Scrollbar */}
       <style jsx global>{`
+        /* Sembunyikan scrollbar secara default */
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
-          border-radius: 8px;
+          background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #a3a3a3;
+          background: transparent;
           border-radius: 8px;
+          transition: background-color 0.3s ease;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+
+        /* Tampilkan scrollbar hanya saat kelas .is-scrolling aktif */
+        .custom-scrollbar.is-scrolling::-webkit-scrollbar-track {
+          background: #f1f1f1;
+        }
+        .custom-scrollbar.is-scrolling::-webkit-scrollbar-thumb {
+          background: #a3a3a3;
+        }
+        .custom-scrollbar.is-scrolling::-webkit-scrollbar-thumb:hover {
           background: #737373;
         }
       `}</style>
