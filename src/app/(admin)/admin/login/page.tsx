@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,9 +10,6 @@ import { faXmark, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default function LoginPage() {
   const router = useRouter();
-
-  // Menggunakan useMemo agar instance client konsisten dan aman
-  const supabase = useMemo(() => createClient(), []);
 
   // State form dan UI
   const [email, setEmail] = useState("");
@@ -26,6 +23,9 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg(null);
+
+    // Instance dibuat lazily HANYA ketika form disubmit di browser
+    const supabase = createClient();
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
