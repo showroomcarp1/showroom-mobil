@@ -70,7 +70,6 @@ interface CarFormData {
 
 export default function NewCarPage() {
   const router = useRouter();
-  const supabase = createClient();
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -208,7 +207,9 @@ export default function NewCarPage() {
     }
   };
 
+  // Fungsi helper upload file (Inisialisasi Supabase dipindah ke dalam sini agar aman dari prerender build)
   const uploadFiles = async (files: FileList): Promise<string[]> => {
+    const supabase = createClient();
     const uploadedUrls: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
