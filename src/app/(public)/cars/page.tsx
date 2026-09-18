@@ -101,8 +101,8 @@ export default async function CarsListingPage({
         >
           <section aria-label="Vehicle Listing" className="pt-6">
             {carList.length === 0 ? (
-              <div className="border border-neutral-200 bg-neutral-50 p-16 text-center rounded-lg">
-                <p className="text-xs text-neutral-500 font-bold tracking-[0.2em] uppercase">
+              <div className=" p-16 text-center">
+                <p className="text-[12px] md:text-xs text-neutral-500 font-bold tracking-[0.2em] uppercase">
                   No Vehicles Match Your Criteria
                 </p>
               </div>
