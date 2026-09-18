@@ -12,7 +12,7 @@ export default function Footer() {
     <footer className="border-t border-neutral-800 bg-neutral-950 text-neutral-300">
       {/* Area padding diperluas ke atas & bawah (py-32 md:py-40) */}
       <div className="mx-auto max-w-7xl px-4 py-32 sm:px-6 md:py-20 lg:px-8">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-4 lg:gap-16">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-4 lg:gap-20">
           {/* Kolom Logo Brand */}
           <div className="md:col-span-1 flex flex-col justify-start">
             <Link href="/" className="inline-block">
@@ -29,30 +29,54 @@ export default function Footer() {
 
           {/* Kolom Navigation */}
           <div>
-            <h3 className="text-lg font-extrabold uppercase tracking-[0.25em] text-white">
+            <h3 className="text-[25px] font-extrabold uppercase tracking-[0.25em] text-white">
               Navigation
             </h3>
-            <ul className="mt-6 space-y-4 text-base font-medium">
+            <ul className="mt-6 space-y-4 text-[20px] font-semibold">
               <li>
                 <Link
                   href="/cars"
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
                 >
-                  Vehicle Catalog
+                  Brands
                 </Link>
               </li>
               <li>
                 <Link
                   href="/promo"
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
                 >
-                  Promotions & Deals
+                  New Cars
                 </Link>
               </li>
               <li>
                 <Link
                   href="/about"
-                  className="text-neutral-400 hover:text-white transition-colors"
+                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                >
+                  Second Cars
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/about"
+                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                >
+                  Exclusive
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/about"
+                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
+                >
+                  Our Facilities
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/about"
+                  className="text-neutral-400 hover:text-white transition-colors duration-800 ease-linear"
                 >
                   About Us
                 </Link>
@@ -62,8 +86,8 @@ export default function Footer() {
 
           {/* Kolom Business Hours */}
           <div>
-            <h3 className="text-lg font-extrabold uppercase tracking-[0.25em] text-white">
-              Business Hours
+            <h3 className="text-[25px] font-extrabold uppercase tracking-[0.25em] text-white">
+              Operating Hours
             </h3>
             <ul className="mt-6 space-y-4 text-base text-neutral-400">
               <li className="flex justify-between border-b border-neutral-900 pb-3">
@@ -83,7 +107,7 @@ export default function Footer() {
 
           {/* Kolom Contact Us */}
           <div>
-            <h3 className="text-lg font-extrabold uppercase tracking-[0.25em] text-white">
+            <h3 className="text-[25px] font-extrabold uppercase tracking-[0.25em] text-white">
               Contact Us
             </h3>
             <ul className="mt-6 space-y-4 text-base">
