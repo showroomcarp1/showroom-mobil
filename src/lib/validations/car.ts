@@ -8,10 +8,13 @@ export const carSchema = z.object({
     .number()
     .min(1900)
     .max(new Date().getFullYear() + 1),
-  transmission: z.enum(["Automatic", "Manually", "CVT"], {
-    message: "Pilih transmisi yang valid",
-  }),
-  fuel_type: z.enum(["Bensin", "Diesel", "Hybrid", "Electric"], {
+  transmission: z.enum(
+    ["Automatic Transmission", "Manual Transmission", "CVT"],
+    {
+      message: "Pilih transmisi yang valid",
+    },
+  ),
+  fuel_type: z.enum(["Petrol", "Diesel", "Hybrid", "Electric"], {
     message: "Pilih bahan bakar yang valid",
   }),
   price: z.number().min(0, { message: "Harga tidak boleh negatif" }),

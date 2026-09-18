@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useState, useRef, useEffect, useTransition } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { CarCardSkeleton } from "@/components/sections/CarCard";
 
 // Brand disesuaikan persis dengan Mega Menu
 const BRAND_OPTIONS = [
@@ -25,12 +26,41 @@ const BRAND_OPTIONS = [
   "Subaru",
 ];
 
-// Opsi Transmisi dengan tambahan Hybrid
-const TRANSMISSION_OPTIONS = ["Automatic", "Manually", "Hybrid"];
+const CONDITION_OPTIONS = ["New", "Used", "Exclusive"];
+
+const TRANSMISSION_OPTIONS = [
+  "Automatic Transmission",
+  "Manual Transmission",
+  "Hybrid",
+];
+
+// Opsi Max Price Diperbesar khusus Luxury Cars (hingga 100 Milyar IDR)
+const PRICE_OPTIONS = [
+  { label: "< IDR 1 Billion", value: "1000000000" },
+  { label: "< IDR 2.5 Billion", value: "2500000000" },
+  { label: "< IDR 5 Billion", value: "5000000000" },
+  { label: "< IDR 10 Billion", value: "10000000000" },
+  { label: "< IDR 20 Billion", value: "20000000000" },
+  { label: "< IDR 35 Billion", value: "35000000000" },
+  { label: "< IDR 50 Billion", value: "50000000000" },
+  { label: "< IDR 75 Billion", value: "75000000000" },
+  { label: "< IDR 100 Billion", value: "100000000000" },
+];
+
+// Opsi Preset Mileage (KM)
+const MILEAGE_OPTIONS = [
+  { label: "< 5,000 km", value: "5000" },
+  { label: "< 10,000 km", value: "10000" },
+  { label: "< 25,000 km", value: "25000" },
+  { label: "< 50,000 km", value: "50000" },
+  { label: "< 100,000 km", value: "100000" },
+  { label: "< 250,000 km", value: "250000" },
+];
 
 interface InventoryFilterProps {
   currentFilters?: {
     brand?: string;
+    condition?: string;
     transmission?: string;
     fuel_type?: string;
     max_price?: string;
@@ -38,24 +68,35 @@ interface InventoryFilterProps {
   };
   filters?: {
     brand?: string;
+    condition?: string;
     transmission?: string;
     fuel_type?: string;
     max_price?: string;
     max_km?: string;
   };
-  onChange?: (key: string, value: string) => void;
+  onChange?: (filters: Record<string, string>) => void;
   onReset?: () => void;
+  children?: React.ReactNode;
 }
 
-interface CustomDropdownProps {
+interface CustomSelectOption {
+  label: string;
+  value: string;
+}
+
+interface CustomSelectProps {
   id: string;
   label: string;
   value: string;
-  options: string[];
+  options: (string | CustomSelectOption)[];
   placeholder: string;
   onChange: (val: string) => void;
 }
 
+/**
+ * Custom Dropdown Component
+ * Typography tegas berwarna Hitam (Neutral-900) dengan Segitiga Penuh Instan (Tanpa Rotate)
+ */
 function CustomSelect({
   id,
   label,
@@ -63,9 +104,15 @@ function CustomSelect({
   options,
   placeholder,
   onChange,
-}: CustomDropdownProps) {
+}: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const normalizedOptions: CustomSelectOption[] = options.map((opt) =>
+    typeof opt === "string" ? { label: opt, value: opt } : opt,
+  );
+
+  const selectedOption = normalizedOptions.find((opt) => opt.value === value);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -80,46 +127,60 @@ function CustomSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
+
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div
+      className="relative flex flex-col gap-2.5"
+      ref={dropdownRef}
+      onKeyDown={handleKeyDown}
+    >
       <label
         htmlFor={id}
-        className="block text-xs font-black uppercase tracking-widest text-neutral-600 mb-2.5 cursor-pointer"
-        onClick={() => setIsOpen(!isOpen)}
+        className="text-xs font-black uppercase tracking-[0.18em] text-neutral-900 cursor-pointer select-none"
+        onClick={() => setIsOpen((prev) => !prev)}
       >
         {label}
       </label>
+
       <button
         id={id}
         type="button"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between border border-neutral-300 bg-white/90 px-4 py-3.5 text-sm font-semibold text-neutral-900 focus:border-neutral-900 focus:outline-none transition-colors text-left shadow-sm"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={`group flex h-14 w-full items-center justify-between border bg-white px-4 py-3.5 text-xs font-black uppercase tracking-wider text-neutral-900 transition-colors duration-200 focus:outline-none ${
+          isOpen
+            ? "border-neutral-900 bg-neutral-50"
+            : "border-neutral-300 hover:border-neutral-400"
+        }`}
       >
-        <span className="truncate">{value || placeholder}</span>
-        {/* Chevron Besar */}
-        <svg
-          className={`h-5 w-5 text-neutral-500 transition-transform duration-[500ms] ease-in-out ${
-            isOpen ? "rotate-180 text-neutral-900" : "rotate-0"
-          }`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M19 9l-7 7-7-7"
-          />
+        <span className="truncate">
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+
+        {/* Ikon Segitiga Penuh Langsung Berbalik (Tanpa Animasi Rotate) */}
+        <svg className="ml-2 h-3.5 w-3.5 fill-neutral-900" viewBox="0 0 24 24">
+          {isOpen ? (
+            /* Segitiga Menghadap Ke Atas (Instan) */
+            <path d="M12 8l8 8H4l8-8z" />
+          ) : (
+            /* Segitiga Menghadap Ke Bawah (Instan) */
+            <path d="M12 16L4 8h16l-8 8z" />
+          )}
         </svg>
       </button>
 
       {isOpen && (
         <ul
           role="listbox"
-          className="absolute left-0 right-0 z-50 mt-1 max-h-64 overflow-auto border border-neutral-300 bg-white py-1 text-sm font-medium text-neutral-900 shadow-xl focus:outline-none custom-scrollbar"
+          tabIndex={-1}
+          aria-labelledby={id}
+          className="absolute top-[100%] left-0 z-50 mt-1 max-h-64 w-full overflow-auto border border-neutral-300 bg-white py-1 shadow-2xl focus:outline-none custom-scrollbar"
         >
           <li
             role="option"
@@ -128,32 +189,36 @@ function CustomSelect({
               onChange("");
               setIsOpen(false);
             }}
-            className={`cursor-pointer px-4 py-3 hover:bg-neutral-100 transition-colors ${
+            className={`cursor-pointer px-4 py-3.5 text-xs font-bold uppercase tracking-wider transition-colors ${
               value === ""
-                ? "bg-neutral-100 text-neutral-950 font-bold"
-                : "text-neutral-700"
+                ? "bg-neutral-900 text-white font-black"
+                : "text-neutral-900 hover:bg-neutral-100"
             }`}
           >
             {placeholder}
           </li>
-          {options.map((opt) => (
-            <li
-              key={opt}
-              role="option"
-              aria-selected={value === opt}
-              onClick={() => {
-                onChange(opt);
-                setIsOpen(false);
-              }}
-              className={`cursor-pointer px-4 py-3 hover:bg-neutral-100 transition-colors ${
-                value === opt
-                  ? "bg-neutral-100 text-neutral-950 font-bold"
-                  : "text-neutral-700"
-              }`}
-            >
-              {opt}
-            </li>
-          ))}
+
+          {normalizedOptions.map((opt) => {
+            const isSelected = value === opt.value;
+            return (
+              <li
+                key={opt.value}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                className={`cursor-pointer px-4 py-3.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                  isSelected
+                    ? "bg-neutral-900 text-white font-black"
+                    : "text-neutral-900 hover:bg-neutral-100"
+                }`}
+              >
+                {opt.label}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
@@ -165,232 +230,250 @@ export default function InventoryFilter({
   filters,
   onChange,
   onReset,
+  children,
 }: InventoryFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
-  const [isOpen, setIsOpen] = useState(true);
+  // Helper untuk membaca nilai filter awal/terkini dari props/URL
+  const getIncomingFilter = (key: string) => {
+    return (
+      currentFilters?.[key as keyof typeof currentFilters] ??
+      filters?.[key as keyof typeof filters] ??
+      searchParams.get(key) ??
+      ""
+    );
+  };
 
-  const activeBrand = currentFilters?.brand ?? filters?.brand ?? "";
-  const activeTransmission =
-    currentFilters?.transmission ?? filters?.transmission ?? "";
+  // State Draft Filter
+  const [draftFilters, setDraftFilters] = useState(() => ({
+    brand: getIncomingFilter("brand"),
+    condition: getIncomingFilter("condition"),
+    transmission: getIncomingFilter("transmission"),
+    max_price: getIncomingFilter("max_price"),
+    max_km: getIncomingFilter("max_km"),
+  }));
 
-  // Max price default set to 50 Billion (50.000.000.000)
-  const initialMaxPrice = Number(
-    currentFilters?.max_price ?? filters?.max_price ?? 50000000000,
+  // Pattern "Adjusting state during render" untuk mencegah error cascading render React
+  const [prevParamsString, setPrevParamsString] = useState(() =>
+    searchParams.toString(),
   );
-  // Max km default set to 500.000
-  const initialMaxKm = Number(
-    currentFilters?.max_km ?? filters?.max_km ?? 500000,
-  );
+  const currentParamsString = searchParams.toString();
 
-  const [maxPrice, setMaxPrice] = useState<number>(initialMaxPrice);
-  const [maxKm, setMaxKm] = useState<number>(initialMaxKm);
+  if (prevParamsString !== currentParamsString) {
+    setPrevParamsString(currentParamsString);
+    setDraftFilters({
+      brand: getIncomingFilter("brand"),
+      condition: getIncomingFilter("condition"),
+      transmission: getIncomingFilter("transmission"),
+      max_price: getIncomingFilter("max_price"),
+      max_km: getIncomingFilter("max_km"),
+    });
+  }
 
-  useEffect(() => {
-    setMaxPrice(initialMaxPrice);
-  }, [initialMaxPrice]);
+  const handleDraftChange = (key: string, value: string) => {
+    setDraftFilters((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
-  useEffect(() => {
-    setMaxKm(initialMaxKm);
-  }, [initialMaxKm]);
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
-  const handleFilterChange = (key: string, value: string) => {
     if (onChange) {
-      onChange(key, value);
+      onChange(draftFilters);
       return;
     }
-    const params = new URLSearchParams(window.location.search);
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    router.push(`${pathname}?${params.toString()}`);
+
+    const params = new URLSearchParams();
+
+    Object.entries(draftFilters).forEach(([key, val]) => {
+      if (val) {
+        params.set(key, val);
+      }
+    });
+
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    });
   };
 
   const handleReset = () => {
-    setMaxPrice(50000000000);
-    setMaxKm(500000);
+    const emptyState = {
+      brand: "",
+      condition: "",
+      transmission: "",
+      max_price: "",
+      max_km: "",
+    };
+
+    setDraftFilters(emptyState);
+
     if (onReset) {
       onReset();
       return;
     }
-    router.push(pathname);
+
+    startTransition(() => {
+      router.push(pathname, { scroll: false });
+    });
   };
 
-  const formatRupiah = (val: number) => {
-    if (val >= 50000000000) return "Unlimited";
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(val);
-  };
-
-  const formatKm = (val: number) => {
-    if (val >= 500000) return "Unlimited";
-    return `${val.toLocaleString("en-US")} km`;
-  };
+  const hasActiveFilters = Object.values(draftFilters).some(Boolean);
 
   return (
-    <section
-      aria-label="Filter Kendaraan"
-      className="relative border border-neutral-200 bg-white p-6 sm:p-8 mb-10 text-neutral-900 shadow-sm"
-    >
-      {/* Header Filter */}
-      <header className="flex items-center justify-between border-b border-neutral-200 pb-4">
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-expanded={isOpen}
-          aria-controls="filter-content"
-          className="group flex items-center gap-3 text-left focus:outline-none"
-        >
-          <h2 className="text-base font-black uppercase tracking-[0.2em] text-neutral-900 transition-colors group-hover:text-neutral-600">
-            Find a Car
-          </h2>
-          <svg
-            className={`h-5 w-5 text-neutral-500 transition-transform duration-[500ms] ease-in-out group-hover:text-neutral-900 ${
-              isOpen ? "rotate-180" : "rotate-0"
-            }`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
-
-        <button
-          type="button"
-          onClick={handleReset}
-          className="text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-neutral-900 transition-colors"
-        >
-          Reset Filters
-        </button>
-      </header>
-
-      {/* Konten Filter Form */}
-      <div
-        id="filter-content"
-        role="region"
-        aria-label="Form Filter Kendaraan"
-        className={`grid transition-all duration-[500ms] ease-in-out ${
-          isOpen
-            ? "grid-rows-[1fr] opacity-100 pt-6 overflow-visible"
-            : "grid-rows-[0fr] opacity-0 pt-0 overflow-hidden"
-        }`}
+    <>
+      <section
+        aria-label="Vehicle Filters"
+        className="relative mb-12 border border-neutral-300 bg-white p-6 sm:p-8 text-neutral-900 shadow-sm"
       >
-        <div className={isOpen ? "overflow-visible" : "overflow-hidden"}>
-          <form onSubmit={(e) => e.preventDefault()}>
-            <fieldset className="border-0 p-0 m-0">
-              <legend className="sr-only">Vehicle Search Filters</legend>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+        {/* Header Filter */}
+        <header className="flex items-center justify-between border-b border-neutral-300 pb-5">
+          <h2 className="text-[20px] font-black uppercase tracking-[0.2em] text-neutral-900">
+            Find A Car
+          </h2>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-xs font-black uppercase tracking-widest text-neutral-900 hover:underline focus:outline-none"
+            >
+              Reset Filters
+            </button>
+          )}
+        </header>
+
+        {/* Form Filter Konten */}
+        <div className="pt-6">
+          <form onSubmit={handleSearchSubmit}>
+            <fieldset className="m-0 border-0 p-0">
+              <legend className="sr-only">Vehicle Search Parameters</legend>
+
+              {/* Grid 5 Kolom */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 items-end">
                 {/* Brand Custom Select */}
                 <CustomSelect
                   id="filter-brand"
                   label="Brand"
-                  value={activeBrand}
+                  value={draftFilters.brand}
                   options={BRAND_OPTIONS}
                   placeholder="All Brands"
-                  onChange={(val) => handleFilterChange("brand", val)}
+                  onChange={(val) => handleDraftChange("brand", val)}
+                />
+
+                {/* Condition Custom Select */}
+                <CustomSelect
+                  id="filter-condition"
+                  label="Condition"
+                  value={draftFilters.condition}
+                  options={CONDITION_OPTIONS}
+                  placeholder="All Conditions"
+                  onChange={(val) => handleDraftChange("condition", val)}
                 />
 
                 {/* Transmission Custom Select */}
                 <CustomSelect
                   id="filter-transmission"
                   label="Transmission"
-                  value={activeTransmission}
+                  value={draftFilters.transmission}
                   options={TRANSMISSION_OPTIONS}
                   placeholder="All Transmissions"
-                  onChange={(val) => handleFilterChange("transmission", val)}
+                  onChange={(val) => handleDraftChange("transmission", val)}
                 />
 
-                {/* Max Price Slider (Min: 100jt, Max: 50 Milyar) */}
-                <div>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <label
-                      htmlFor="filter-max-price"
-                      className="text-xs font-black uppercase tracking-widest text-neutral-600"
-                    >
-                      Max Price
-                    </label>
-                    <span className="text-xs font-extrabold text-neutral-900 tracking-wide">
-                      {formatRupiah(maxPrice)}
-                    </span>
-                  </div>
-                  <input
-                    id="filter-max-price"
-                    type="range"
-                    min="100000000"
-                    max="50000000000"
-                    step="500000000"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(Number(e.target.value))}
-                    onMouseUp={() =>
-                      handleFilterChange(
-                        "max_price",
-                        maxPrice >= 50000000000 ? "" : maxPrice.toString(),
-                      )
-                    }
-                    onTouchEnd={() =>
-                      handleFilterChange(
-                        "max_price",
-                        maxPrice >= 50000000000 ? "" : maxPrice.toString(),
-                      )
-                    }
-                    className="w-full accent-neutral-900 cursor-pointer h-1.5 bg-neutral-200 appearance-none"
-                  />
-                </div>
+                {/* Max Price Custom Select */}
+                <CustomSelect
+                  id="filter-max-price"
+                  label="Max Price"
+                  value={draftFilters.max_price}
+                  options={PRICE_OPTIONS}
+                  placeholder="All Prices"
+                  onChange={(val) => handleDraftChange("max_price", val)}
+                />
 
-                {/* Max Mileage Slider (Min: 5.000 km, Max: 500.000 km) */}
-                <div>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <label
-                      htmlFor="filter-max-km"
-                      className="text-xs font-black uppercase tracking-widest text-neutral-600"
-                    >
-                      Max Mileage
-                    </label>
-                    <span className="text-xs font-extrabold text-neutral-900 tracking-wide">
-                      {formatKm(maxKm)}
-                    </span>
-                  </div>
-                  <input
-                    id="filter-max-km"
-                    type="range"
-                    min="5000"
-                    max="500000"
-                    step="10000"
-                    value={maxKm}
-                    onChange={(e) => setMaxKm(Number(e.target.value))}
-                    onMouseUp={() =>
-                      handleFilterChange(
-                        "max_km",
-                        maxKm >= 500000 ? "" : maxKm.toString(),
-                      )
-                    }
-                    onTouchEnd={() =>
-                      handleFilterChange(
-                        "max_km",
-                        maxKm >= 500000 ? "" : maxKm.toString(),
-                      )
-                    }
-                    className="w-full accent-neutral-900 cursor-pointer h-1.5 bg-neutral-200 appearance-none"
-                  />
-                </div>
+                {/* Max Mileage Custom Select */}
+                <CustomSelect
+                  id="filter-max-km"
+                  label="Max Mileage"
+                  value={draftFilters.max_km}
+                  options={MILEAGE_OPTIONS}
+                  placeholder="All Mileage"
+                  onChange={(val) => handleDraftChange("max_km", val)}
+                />
+              </div>
+
+              {/* Search Button Container */}
+              <div className="mt-8 flex items-center justify-end border-t border-neutral-200 pt-6">
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 bg-neutral-900 px-12 text-base font-black uppercase tracking-[0.25em] text-white transition-all duration-200 hover:bg-neutral-800 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-neutral-900 focus:ring-offset-2 disabled:opacity-50 cursor-pointer"
+                >
+                  {isPending ? (
+                    <>
+                      <svg
+                        className="h-6 w-6 animate-spin text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      <span>Searching...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="h-6 w-6 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                      <span>Search</span>
+                    </>
+                  )}
+                </button>
               </div>
             </fieldset>
           </form>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* State Loading Skeleton */}
+      {isPending ? (
+        <section aria-label="Loading Vehicles Grid" className="pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <CarCardSkeleton key={i} />
+            ))}
+          </div>
+        </section>
+      ) : (
+        children
+      )}
+    </>
   );
 }

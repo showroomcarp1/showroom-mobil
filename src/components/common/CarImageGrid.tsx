@@ -27,14 +27,14 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
           <div
             key={idx}
             onClick={() => setSelectedImage(img)}
-            className="group relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 border border-neutral-200 cursor-pointer hover:border-black transition-all"
+            className="group relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 cursor-pointer transition-all"
           >
             <Image
               src={img}
               alt={`${altText} ${idx + 1}`}
               fill
               sizes="(max-width: 768px) 50vw, 25vw"
-              className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
+              className="object-cover object-center"
             />
           </div>
         ))}
@@ -55,7 +55,7 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
             />
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute top-2 right-2 bg-black/70 text-white rounded-full p-2 text-xs font-bold hover:bg-red-600"
+              className="absolute top-1 right-2  text-white rounded-full p-2 text-[30px] font-bold"
             >
               ✕
             </button>

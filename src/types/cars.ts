@@ -1,12 +1,15 @@
 export type ConditionType = "New" | "Used" | "Exclusive";
-export type TransmissionType = "Automatic" | "Manually" | "CVT";
+export type TransmissionType =
+  | "Automatic Transmission"
+  | "Manual Transmission"
+  | "CVT";
 export type FuelType = "Petrol" | "Diesel" | "Hybrid" | "Electric";
 export type CarStatus = "available" | "sold" | "reserved";
 
 export const CONDITION_OPTIONS: ConditionType[] = ["New", "Used", "Exclusive"];
 export const TRANSMISSION_OPTIONS: TransmissionType[] = [
-  "Automatic",
-  "Manually",
+  "Automatic Transmission",
+  "Manual Transmission",
   "CVT",
 ];
 export const FUEL_OPTIONS: FuelType[] = [

@@ -9,9 +9,12 @@ export const CAR_BRANDS = [
   "Mazda",
 ] as const;
 
-export const TRANSMISSION_OPTIONS = ["Automatic", "Manually"] as const;
+export const TRANSMISSION_OPTIONS = [
+  "Automatic Transmission",
+  "Manual Transmission",
+] as const;
 
-export const FUEL_OPTIONS = ["Bensin", "Diesel", "Hybrid", "Electric"] as const;
+export const FUEL_OPTIONS = ["Petrol", "Diesel", "Hybrid", "Electric"] as const;
 
 export const DEFAULT_CAR_FEATURES = [
   "Sunroof / Panorama Roof",

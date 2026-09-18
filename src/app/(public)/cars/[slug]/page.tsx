@@ -1,16 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import CreditCalculator from "@/components/sections/CreditCalculator";
 import CarDetailContent from "@/components/sections/CarDetailContent";
+import MobileStickyBar from "@/components/common/MobileStickyBar";
+import DesktopFloatingBar from "@/components/sections/DesktopFloatingBar";
 import FontAwesomeIcon from "@/components/common/FontAwesomeIcon";
-import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import {
   faGasPump,
   faGears,
   faCalendar,
   faRoad,
   faChevronRight,
+  faCar,
+  faTag,
 } from "@fortawesome/free-solid-svg-icons";
 import type { Car, ConditionType } from "@/types/cars";
 
@@ -51,24 +53,51 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
     notFound();
   }
 
-  const finalPrice = car.discount_price
-    ? car.price - car.discount_price
-    : car.price;
+  // Logika kalkulasi diskon aman & konsisten dengan komponen Card
+  const rawPrice = car.price || 0;
+  const rawDiscount = car.discount_price || 0;
+
+  let discountCutAmount = 0;
+  let discountPercentage = 0;
+
+  if (rawDiscount > 0 && rawPrice > 0) {
+    if (rawDiscount <= 100) {
+      discountPercentage = rawDiscount;
+      discountCutAmount = Math.round((rawPrice * rawDiscount) / 100);
+    } else {
+      discountCutAmount = rawDiscount;
+      discountPercentage = Math.min(
+        100,
+        Math.max(0, Math.round((rawDiscount / rawPrice) * 100)),
+      );
+    }
+  }
+
+  const hasDiscount = discountCutAmount > 0;
+  const finalPrice = Math.max(0, rawPrice - discountCutAmount);
 
   const carTitle =
     car.title || `${car.brand} ${car.model} ${car.variant || ""}`.trim();
 
+  const whatsappInquireMsg = encodeURIComponent(
+    `Hello, I am interested in the ${carTitle} (${car.year}). Please let me know more details.`,
+  );
+
+  const whatsappTestDriveMsg = encodeURIComponent(
+    `Hello, I would like to schedule a Test Drive for the ${carTitle} (${car.year}).`,
+  );
+
   return (
-    <main className="bg-white pt-6 pb-20 text-neutral-900">
-      {/* SEMANTIC BREADCRUMB */}
-      <nav
-        aria-label="Breadcrumb"
-        className="border-b border-neutral-100 bg-white py-2"
-      >
+    <main className="bg-white pt-3 lg:pt-6 pb-28 lg:pb-20 text-neutral-900 relative">
+      {/* Breadcrumb nav */}
+      <nav aria-label="Breadcrumb" className="bg-white py-2">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ol className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-widest text-neutral-500 overflow-x-auto whitespace-nowrap">
+          <ol className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-neutral-400 overflow-x-auto whitespace-nowrap scrollbar-none">
             <li>
-              <Link href="/" className="hover:text-black transition-colors">
+              <Link
+                href="/cars"
+                className="font-normal hover:text-black transition-colors"
+              >
                 HOME
               </Link>
             </li>
@@ -77,7 +106,10 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
               className="h-2 w-2 text-neutral-300"
             />
             <li>
-              <Link href="/cars" className="hover:text-black transition-colors">
+              <Link
+                href="/cars"
+                className="font-normal hover:text-black transition-colors"
+              >
                 {conditionBreadcrumbLabel[car.condition] || "CAR"}
               </Link>
             </li>
@@ -86,99 +118,152 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
               className="h-2 w-2 text-neutral-300"
             />
             <li>
-              <span className="text-neutral-500">{car.brand}</span>
+              <span className="font-normal text-neutral-400">{car.brand}</span>
             </li>
             <FontAwesomeIcon
               icon={faChevronRight}
               className="h-2 w-2 text-neutral-300"
             />
-            <li className="text-black font-black truncate max-w-[200px]">
-              {carTitle}
+            <li>
+              <span className="font-extrabold text-black truncate max-w-[200px] inline-block align-bottom">
+                {carTitle}
+              </span>
             </li>
           </ol>
         </div>
       </nav>
 
-      {/* MAIN CONTAINER */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
-          {/* KONTEN UTAMA: Menangani Nav Tab Interaktif & Galeri */}
-          <section className="lg:col-span-7 space-y-6">
-            <CarDetailContent car={car} />
-          </section>
-
-          {/* SIDEBAR KANAN: Detail & Simulasi */}
-          <aside className="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
-            <div className="border border-neutral-200 bg-white p-6 space-y-6 rounded-none">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-                  {car.brand}
+      {/* Detail container */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
+        <CarDetailContent car={car}>
+          {/* Header & info panel */}
+          <article className="space-y-6">
+            <header className="space-y-2 border-b border-neutral-100 pb-5">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-neutral-900 leading-tight">
+                {carTitle}
+              </h1>
+              <div className="pt-2">
+                <span className="block text-[10px] sm:text-xs font-medium text-neutral-400 uppercase tracking-widest">
+                  Price
                 </span>
-                <h1 className="text-2xl font-black text-neutral-900 tracking-tight mt-0.5">
-                  {carTitle}
-                </h1>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2 border-y border-neutral-100 py-4 text-center text-xs text-neutral-800">
-                <div className="flex flex-col items-center gap-1.5">
-                  <FontAwesomeIcon
-                    icon={faCalendar}
-                    className="h-4 w-4 text-neutral-400"
-                  />
-                  <span className="font-bold text-[11px]">{car.year}</span>
+                <div className="flex flex-wrap items-baseline gap-3 mt-1">
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-600 tracking-tight">
+                    IDR {finalPrice.toLocaleString("id-ID")}
+                  </p>
+                  {hasDiscount && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-base sm:text-lg font-medium text-neutral-400 line-through">
+                        IDR {rawPrice.toLocaleString("id-ID")}
+                      </span>
+                      <span className="text-[10px] sm:text-xs font-bold uppercase bg-red-600 text-white px-2 py-0.5 rounded-xs tracking-wider">
+                        Save {discountPercentage}%
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <FontAwesomeIcon
-                    icon={faRoad}
-                    className="h-4 w-4 text-neutral-400"
-                  />
-                  <span className="font-bold text-[11px]">
+              </div>
+            </header>
+
+            {/* Spesifikasi utama berbaris (list style) */}
+            <section aria-label="Spesifikasi Utama">
+              <dl className="divide-y divide-neutral-100 border-y border-neutral-100">
+                {/* Brand */}
+                <div className="flex items-center justify-between py-3">
+                  <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
+                    <FontAwesomeIcon
+                      icon={faCar}
+                      className="h-4 w-4 text-neutral-400"
+                    />
+                    Brand
+                  </dt>
+                  <dd className="text-sm font-bold text-neutral-900 uppercase">
+                    {car.brand}
+                  </dd>
+                </div>
+
+                {/* Condition */}
+                <div className="flex items-center justify-between py-3">
+                  <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
+                    <FontAwesomeIcon
+                      icon={faTag}
+                      className="h-4 w-4 text-neutral-400"
+                    />
+                    Condition
+                  </dt>
+                  <dd className="text-sm font-bold text-neutral-900 uppercase">
+                    {car.condition}
+                  </dd>
+                </div>
+
+                {/* Year */}
+                <div className="flex items-center justify-between py-3">
+                  <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
+                    <FontAwesomeIcon
+                      icon={faCalendar}
+                      className="h-4 w-4 text-neutral-400"
+                    />
+                    Year
+                  </dt>
+                  <dd className="text-sm font-bold text-neutral-900 uppercase">
+                    {car.year}
+                  </dd>
+                </div>
+
+                {/* Mileage */}
+                <div className="flex items-center justify-between py-3">
+                  <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
+                    <FontAwesomeIcon
+                      icon={faRoad}
+                      className="h-4 w-4 text-neutral-400"
+                    />
+                    Mileage
+                  </dt>
+                  <dd className="text-sm font-bold text-neutral-900 uppercase">
                     {car.mileage
-                      ? `${Number(car.mileage).toLocaleString("id-ID")} km`
+                      ? `${Number(car.mileage).toLocaleString("en-US")} km`
                       : "-"}
-                  </span>
+                  </dd>
                 </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <FontAwesomeIcon
-                    icon={faGears}
-                    className="h-4 w-4 text-neutral-400"
-                  />
-                  <span className="font-bold text-[11px]">
+
+                {/* Transmission */}
+                <div className="flex items-center justify-between py-3">
+                  <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
+                    <FontAwesomeIcon
+                      icon={faGears}
+                      className="h-4 w-4 text-neutral-400"
+                    />
+                    Transmission
+                  </dt>
+                  <dd className="text-sm font-bold text-neutral-900 uppercase">
                     {car.transmission}
-                  </span>
+                  </dd>
                 </div>
-                <div className="flex flex-col items-center gap-1.5">
-                  <FontAwesomeIcon
-                    icon={faGasPump}
-                    className="h-4 w-4 text-neutral-400"
-                  />
-                  <span className="font-bold text-[11px]">{car.fuel_type}</span>
+
+                {/* Fuel type */}
+                <div className="flex items-center justify-between py-3">
+                  <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
+                    <FontAwesomeIcon
+                      icon={faGasPump}
+                      className="h-4 w-4 text-neutral-400"
+                    />
+                    Fuel Type
+                  </dt>
+                  <dd className="text-sm font-bold text-neutral-900 uppercase">
+                    {car.fuel_type}
+                  </dd>
                 </div>
-              </div>
-
-              <div>
-                <div className="text-2xl font-black text-red-600 tracking-tight">
-                  Rp {finalPrice.toLocaleString("id-ID")}
-                </div>
-              </div>
-
-              <a
-                href={`https://wa.me/6281234567890?text=${encodeURIComponent(
-                  `Halo, saya tertarik dengan unit ${carTitle}.`,
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2.5 rounded-none bg-emerald-600 hover:bg-emerald-700 py-3.5 text-xs font-black uppercase tracking-widest text-white transition-colors"
-              >
-                <FontAwesomeIcon icon={faWhatsapp} className="h-4 w-4" />
-                Tanya Sales via WhatsApp
-              </a>
-            </div>
-
-            <CreditCalculator carPrice={finalPrice} />
-          </aside>
-        </div>
+              </dl>
+            </section>
+          </article>
+        </CarDetailContent>
       </div>
+
+      {/* Floating contact bar */}
+      <DesktopFloatingBar
+        whatsappInquireMsg={whatsappInquireMsg}
+        whatsappTestDriveMsg={whatsappTestDriveMsg}
+      />
+      <MobileStickyBar carTitle={carTitle} year={car.year} />
     </main>
   );
 }

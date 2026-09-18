@@ -8,6 +8,7 @@ export const revalidate = 0;
 interface SearchParamsProps {
   searchParams: Promise<{
     brand?: string;
+    condition?: string;
     transmission?: string;
     fuel_type?: string;
     max_price?: string;
@@ -25,14 +26,13 @@ export default async function CarsListingPage({
   const resolvedSearchParams = await searchParams;
   const {
     brand,
+    condition,
     transmission,
     fuel_type,
     max_price,
     max_km,
     location,
     type,
-    price,
-    year,
   } = resolvedSearchParams;
 
   const supabase = await createClient();
@@ -42,9 +42,11 @@ export default async function CarsListingPage({
     .eq("status", "available")
     .order("created_at", { ascending: false });
 
-  // Filter Query Handling
   if (brand && brand !== "All") {
     query = query.ilike("brand", `%${brand}%`);
+  }
+  if (condition && condition !== "All") {
+    query = query.eq("condition", condition);
   }
   if (transmission && transmission !== "All") {
     query = query.eq("transmission", transmission);
@@ -90,37 +92,34 @@ export default async function CarsListingPage({
         </video>
       </section>
 
-      {/* Main Inventory Content (Dinaikkan setengah ke dalam video menggunakan -mt-24 dan relative z-30) */}
+      {/* Main Inventory Content */}
       <div className="relative z-30 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-20 sm:-mt-24">
-        {/* Filter Section (Mengambang) */}
-        <section aria-label="Vehicle Filters">
-          <InventoryFilter
-            currentFilters={{
-              brand: brand || "",
-              transmission: transmission || "",
-              fuel_type: fuel_type || "",
-              max_price: max_price || "",
-              max_km: max_km || "",
-            }}
-          />
-        </section>
-
-        {/* Grid Daftar Mobil Full-Width */}
-        <section aria-label="Vehicle Listing" className="pt-6">
-          {carList.length === 0 ? (
-            <div className="border border-neutral-200 bg-neutral-50 p-16 text-center rounded-lg">
-              <p className="text-xs text-neutral-500 font-bold tracking-[0.2em] uppercase">
-                No Vehicles Match Your Criteria
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {carList.map((car) => (
-                <CarCard key={car.id} car={car} />
-              ))}
-            </div>
-          )}
-        </section>
+        <InventoryFilter
+          currentFilters={{
+            brand: brand || "",
+            condition: condition || "",
+            transmission: transmission || "",
+            fuel_type: fuel_type || "",
+            max_price: max_price || "",
+            max_km: max_km || "",
+          }}
+        >
+          <section aria-label="Vehicle Listing" className="pt-6">
+            {carList.length === 0 ? (
+              <div className="border border-neutral-200 bg-neutral-50 p-16 text-center rounded-lg">
+                <p className="text-xs text-neutral-500 font-bold tracking-[0.2em] uppercase">
+                  No Vehicles Match Your Criteria
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-8 transition-all duration-300">
+                {carList.map((car) => (
+                  <CarCard key={car.id} car={car} />
+                ))}
+              </div>
+            )}
+          </section>
+        </InventoryFilter>
       </div>
     </main>
   );

@@ -14,6 +14,32 @@ import { createCar, updateCar } from "@/lib/actions/car";
 import { TRANSMISSION_OPTIONS, FUEL_OPTIONS } from "@/lib/constants/inventory";
 import { createClient } from "@/lib/supabase/client";
 
+const BRANDS = [
+  "BMW",
+  "Mercedes-Benz",
+  "Porsche",
+  "Ferrari",
+  "Lamborghini",
+  "Land Rover",
+  "Mini",
+  "Audi",
+  "Maserati",
+  "Aston Martin",
+  "Bentley",
+  "Rolls-Royce",
+  "McLaren",
+  "Jaguar",
+  "Subaru",
+  "Lexus",
+  "Honda",
+  "Toyota",
+  "Hyundai",
+  "Kia",
+  "Mazda",
+  "Nissan",
+  "Mitsubishi",
+] as const;
+
 interface CarFormProps {
   initialData?: Car | null;
 }
@@ -29,6 +55,19 @@ function generateSlug(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
+function normalizeInitialDiscount(price: number, discount: number): number {
+  if (!discount || discount <= 0) return 0;
+  if (discount <= 100 && price > 0) {
+    return Math.round((price * discount) / 100);
+  }
+  return discount;
+}
+
+function calculatePercent(price: number, discountCut: number): number {
+  if (!price || !discountCut) return 0;
+  return Math.min(100, Math.max(0, Math.round((discountCut / price) * 100)));
+}
+
 export default function CarForm({ initialData }: CarFormProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -38,7 +77,74 @@ export default function CarForm({ initialData }: CarFormProps) {
     useState<ImageCategory | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
 
-  // State terpisah untuk masing-masing kategori gambar
+  const [discountMode, setDiscountMode] = useState<"fixed" | "percentage">(
+    "percentage",
+  );
+
+  const [priceValue, setPriceValue] = useState<number>(
+    () => initialData?.price || 0,
+  );
+  const [discountPriceValue, setDiscountPriceValue] = useState<number>(() => {
+    const p = initialData?.price || 0;
+    const dp = initialData?.discount_price || 0;
+    return normalizeInitialDiscount(p, dp);
+  });
+
+  const [discountPercentValue, setDiscountPercentValue] = useState<number>(
+    () => {
+      const p = initialData?.price || 0;
+      const dp = initialData?.discount_price || 0;
+      const normalizedCut = normalizeInitialDiscount(p, dp);
+      return calculatePercent(p, normalizedCut);
+    },
+  );
+
+  // Handler Perubahan Harga OTR
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPrice = Number(e.target.value) || 0;
+    setPriceValue(newPrice);
+
+    if (discountMode === "percentage") {
+      const calculatedCut = Math.round((newPrice * discountPercentValue) / 100);
+      setDiscountPriceValue(calculatedCut);
+    } else {
+      setDiscountPercentValue(calculatePercent(newPrice, discountPriceValue));
+    }
+  };
+
+  // Handler Perubahan Persentase Diskon (%)
+  const handlePercentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value === "" ? 0 : Number(e.target.value);
+    const percent = Math.min(100, Math.max(0, raw));
+    setDiscountPercentValue(percent);
+
+    const calculatedCut = Math.round((priceValue * percent) / 100);
+    setDiscountPriceValue(calculatedCut);
+  };
+
+  // Handler Perubahan Nominal Potongan (Rp)
+  const handleFixedDiscountChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const cutAmount = e.target.value === "" ? 0 : Number(e.target.value);
+    setDiscountPriceValue(cutAmount);
+    setDiscountPercentValue(calculatePercent(priceValue, cutAmount));
+  };
+
+  // Handler Ganti Mode (% / Rp)
+  const handleModeChange = (mode: "fixed" | "percentage") => {
+    setDiscountMode(mode);
+    if (mode === "percentage") {
+      const calculatedCut = Math.round(
+        (priceValue * discountPercentValue) / 100,
+      );
+      setDiscountPriceValue(calculatedCut);
+    } else {
+      setDiscountPercentValue(calculatePercent(priceValue, discountPriceValue));
+    }
+  };
+
+  // State Foto Galeri
   const [images, setImages] = useState<string[]>(
     initialData?.images && initialData.images.length > 0
       ? initialData.images
@@ -53,7 +159,6 @@ export default function CarForm({ initialData }: CarFormProps) {
     initialData?.interior_images || [],
   );
 
-  // Helper untuk mendapatkan setter berdasarkan kategori
   const getCategorySetter = (category: ImageCategory) => {
     switch (category) {
       case "exterior_images":
@@ -65,7 +170,6 @@ export default function CarForm({ initialData }: CarFormProps) {
     }
   };
 
-  // Helper untuk mendapatkan list URL berdasarkan kategori
   const getCategoryList = (category: ImageCategory) => {
     switch (category) {
       case "exterior_images":
@@ -77,7 +181,6 @@ export default function CarForm({ initialData }: CarFormProps) {
     }
   };
 
-  // Handler Upload Foto Universal per Kategori ke Supabase Storage
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     category: ImageCategory,
@@ -92,22 +195,24 @@ export default function CarForm({ initialData }: CarFormProps) {
 
     try {
       const uploadedUrls: string[] = [];
+      const fileList = Array.from(files);
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      for (const file of fileList) {
         const fileExt = file.name.split(".").pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const uniqueId =
+          typeof window !== "undefined" && window.crypto?.randomUUID
+            ? window.crypto.randomUUID()
+            : `${file.name.replace(/[^a-zA-Z0-9]/g, "")}-${file.size}`;
+
+        const fileName = `${uniqueId}.${fileExt}`;
         const filePath = `cars/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from("car-images")
           .upload(filePath, file);
 
-        if (uploadError) {
-          throw new Error(
-            `Gagal mengunggah foto ${file.name}: ${uploadError.message}`,
-          );
-        }
+        if (uploadError)
+          throw new Error(`Upload gagal: ${uploadError.message}`);
 
         const { data: publicUrlData } = supabase.storage
           .from("car-images")
@@ -118,18 +223,15 @@ export default function CarForm({ initialData }: CarFormProps) {
 
       setList((prev) => [...prev, ...uploadedUrls]);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setErrorMsg(err.message);
-      } else {
-        setErrorMsg("Terjadi kesalahan saat mengunggah foto.");
-      }
+      setErrorMsg(
+        err instanceof Error ? err.message : "Gagal mengunggah foto.",
+      );
     } finally {
       setUploadingCategory(null);
       e.target.value = "";
     }
   };
 
-  // Handler Hapus Gambar per Kategori
   const handleRemoveImage = (category: ImageCategory, index: number) => {
     const setList = getCategorySetter(category);
     setList((prev) => prev.filter((_, i) => i !== index));
@@ -155,6 +257,11 @@ export default function CarForm({ initialData }: CarFormProps) {
       generateSlug(inputTitle) ||
       `car-${Date.now()}`;
 
+    const finalDiscountCut =
+      discountMode === "percentage"
+        ? Math.round((priceValue * discountPercentValue) / 100)
+        : discountPriceValue;
+
     const payload = {
       title: inputTitle,
       slug: finalSlug,
@@ -163,8 +270,8 @@ export default function CarForm({ initialData }: CarFormProps) {
       variant,
       year: Number(formData.get("year")),
       mileage: Number(formData.get("mileage")) || 0,
-      price: Number(formData.get("price")),
-      discount_price: Number(formData.get("discount_price")) || 0,
+      price: priceValue,
+      discount_price: finalDiscountCut,
       condition: ((formData.get("condition") as string) ||
         "New") as ConditionType,
       transmission: formData.get("transmission") as TransmissionType,
@@ -186,16 +293,11 @@ export default function CarForm({ initialData }: CarFormProps) {
       router.push("/admin/cars");
       router.refresh();
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setErrorMsg(err.message);
-      } else {
-        setErrorMsg("Terjadi kesalahan saat menyimpan data.");
-      }
+      setErrorMsg(err instanceof Error ? err.message : "Gagal menyimpan data.");
       setLoading(false);
     }
   };
 
-  // Sub-komponen UI untuk Section Pengelolaan Gambar
   const renderImageUploader = (
     category: ImageCategory,
     title: string,
@@ -205,18 +307,22 @@ export default function CarForm({ initialData }: CarFormProps) {
     const isUploading = uploadingCategory === category;
 
     return (
-      <section className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/50 p-4">
-        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200/80 pb-3">
+      <section className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50/70 p-4">
+        <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 pb-3">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-900">
+            <h3 className="text-xs font-black uppercase tracking-wider text-neutral-900">
               {title}{" "}
-              <span className="text-neutral-500">({currentList.length})</span>
+              <span className="text-neutral-500 font-bold">
+                ({currentList.length})
+              </span>
             </h3>
-            <p className="text-[11px] text-neutral-500">{description}</p>
+            <p className="text-[11px] text-neutral-500 font-medium">
+              {description}
+            </p>
           </div>
 
-          <label className="cursor-pointer rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-neutral-800">
-            {isUploading ? "Mengunggah..." : "+ Unggah Foto"}
+          <label className="cursor-pointer rounded-md bg-neutral-950 px-3.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-neutral-800">
+            {isUploading ? "MENGUNGGAH..." : "+ UNGGAH FOTO"}
             <input
               type="file"
               accept="image/*"
@@ -229,23 +335,23 @@ export default function CarForm({ initialData }: CarFormProps) {
         </header>
 
         {currentList.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 pt-1">
             {currentList.map((url, idx) => (
               <figure
                 key={`${category}-${idx}`}
-                className="group relative aspect-video rounded-lg border border-neutral-200 bg-white overflow-hidden shadow-sm"
+                className="group relative aspect-4/3 rounded-md border border-neutral-200 bg-white overflow-hidden"
               >
                 <Image
                   src={url}
                   alt={`${title} ${idx + 1}`}
                   fill
                   sizes="(max-width: 640px) 50vw, 25vw"
-                  className="object-cover transition-transform duration-200 group-hover:scale-105"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveImage(category, idx)}
-                  className="absolute top-1.5 right-1.5 rounded bg-red-600/90 px-2 py-0.5 text-[10px] font-medium text-white shadow-sm backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-700"
+                  className="absolute top-2 right-2 rounded bg-neutral-950/90 hover:bg-red-600 px-2 py-1 text-[10px] font-bold text-white uppercase tracking-wider transition-colors"
                 >
                   Hapus
                 </button>
@@ -253,7 +359,7 @@ export default function CarForm({ initialData }: CarFormProps) {
             ))}
           </div>
         ) : (
-          <p className="py-2 text-center text-[11px] italic text-neutral-400">
+          <p className="py-2 text-center text-xs italic text-neutral-400 font-medium">
             Belum ada foto dalam kategori ini.
           </p>
         )}
@@ -261,110 +367,119 @@ export default function CarForm({ initialData }: CarFormProps) {
     );
   };
 
+  const finalNetPrice = Math.max(0, priceValue - discountPriceValue);
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-3xl rounded-2xl border border-neutral-200 bg-white p-6 space-y-6 shadow-sm"
+      className="max-w-4xl rounded-md border border-neutral-200 bg-white p-6 space-y-8 shadow-xs"
     >
       {errorMsg && (
         <div
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 font-medium"
+          className="rounded-md border border-red-300 bg-red-50 p-3.5 text-xs text-red-700 font-bold uppercase tracking-wide"
         >
           {errorMsg}
         </div>
       )}
 
-      {/* --- SECTION 1: MANAJEMEN FOTO GALERI --- */}
+      {/* --- SECTION 1: GALERI FOTO --- */}
       <fieldset className="space-y-4">
-        <legend className="text-sm font-bold text-neutral-900 border-b border-neutral-100 pb-2 w-full">
+        <legend className="text-base font-black uppercase tracking-tight text-neutral-950 border-b border-neutral-200 pb-2 w-full">
           Galeri Foto Kendaraan
         </legend>
 
         {renderImageUploader(
           "images",
-          "Foto Utama (Hero)",
-          "Foto yang muncul sebagai banner/cover utama kartu mobil.",
+          "1. Foto Utama / Cover",
+          "Tampilan utama di kartu dan katalog mobil.",
         )}
 
         {renderImageUploader(
           "exterior_images",
-          "Galeri Eksterior",
+          "2. Galeri Eksterior",
           "Foto bodi luar, velg, lampu, dan tampak samping/belakang.",
         )}
 
         {renderImageUploader(
           "interior_images",
-          "Galeri Interior",
+          "3. Galeri Interior",
           "Foto kemudi, dasbor, jok, bagasi, dan fitur kabin.",
         )}
       </fieldset>
 
       {/* --- SECTION 2: IDENTITAS UNIT --- */}
       <fieldset className="space-y-4">
-        <legend className="text-sm font-bold text-neutral-900 border-b border-neutral-100 pb-2 w-full">
-          Identitas Kendaraan
+        <legend className="text-base font-black uppercase tracking-tight text-neutral-950 border-b border-neutral-200 pb-2 w-full">
+          Identitas Unit Mobil
         </legend>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
               Judul Tampilan Mobil
             </label>
             <input
               name="title"
               defaultValue={initialData?.title || ""}
-              placeholder="Honda Civic RS Turbo"
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              placeholder="Contoh: Honda Civic RS 1.5 Turbo"
+              className="w-full rounded-md border border-neutral-300 px-3.5 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Slug URL Custom
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Slug URL Custom (Opsional)
             </label>
             <input
               name="slug"
               defaultValue={initialData?.slug || ""}
               placeholder="honda-civic-rs-turbo"
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 px-3.5 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none bg-neutral-50"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Merek
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Merek / Brand *
             </label>
-            <input
+            {/* DROPDOWN SELECT BRAND */}
+            <select
               name="brand"
-              defaultValue={initialData?.brand || ""}
+              defaultValue={initialData?.brand || BRANDS[0]}
               required
-              placeholder="Honda"
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-            />
+              className="w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
+            >
+              {BRANDS.map((brandName) => (
+                <option key={brandName} value={brandName}>
+                  {brandName}
+                </option>
+              ))}
+            </select>
           </div>
+
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Model
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Model *
             </label>
             <input
               name="model"
               defaultValue={initialData?.model || ""}
               required
               placeholder="Civic"
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 px-3.5 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
               Varian
             </label>
             <input
               name="variant"
               defaultValue={initialData?.variant || ""}
               placeholder="RS Turbo"
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 px-3.5 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
             />
           </div>
         </div>
@@ -372,59 +487,59 @@ export default function CarForm({ initialData }: CarFormProps) {
 
       {/* --- SECTION 3: SPESIFIKASI TEKNIS --- */}
       <fieldset className="space-y-4">
-        <legend className="text-sm font-bold text-neutral-900 border-b border-neutral-100 pb-2 w-full">
+        <legend className="text-base font-black uppercase tracking-tight text-neutral-950 border-b border-neutral-200 pb-2 w-full">
           Spesifikasi Teknis
         </legend>
 
         <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Kondisi Unit
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Kondisi *
             </label>
             <select
               name="condition"
               defaultValue={initialData?.condition || "New"}
-              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
             >
-              <option value="New">Baru (New)</option>
-              <option value="Used">Bekas (Used)</option>
-              <option value="Exclusive">Eksklusif (Exclusive)</option>
+              <option value="New">New</option>
+              <option value="Used">Used</option>
+              <option value="Exclusive">Exclusive</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Tahun
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Tahun *
             </label>
             <input
               type="number"
               name="year"
               defaultValue={initialData?.year || new Date().getFullYear()}
               required
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Kilometer
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Kilometer (KM)
             </label>
             <input
               type="number"
               name="mileage"
               defaultValue={initialData?.mileage || 0}
               placeholder="0"
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Transmisi
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Transmisi *
             </label>
             <select
               name="transmission"
               defaultValue={
                 initialData?.transmission || TRANSMISSION_OPTIONS[0]
               }
-              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
             >
               {TRANSMISSION_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -434,13 +549,13 @@ export default function CarForm({ initialData }: CarFormProps) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Bahan Bakar
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+              Bahan Bakar *
             </label>
             <select
               name="fuel_type"
               defaultValue={initialData?.fuel_type || FUEL_OPTIONS[0]}
-              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
             >
               {FUEL_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -452,78 +567,170 @@ export default function CarForm({ initialData }: CarFormProps) {
         </div>
       </fieldset>
 
-      {/* --- SECTION 4: HARGA, STATUS & DESKRIPSI --- */}
+      {/* --- SECTION 4: HARGA & DISKON --- */}
       <fieldset className="space-y-4">
-        <legend className="text-sm font-bold text-neutral-900 border-b border-neutral-100 pb-2 w-full">
-          Harga & Publikasi
+        <legend className="text-base font-black uppercase tracking-tight text-neutral-950 border-b border-neutral-200 pb-2 w-full">
+          Harga & Skema Diskon
         </legend>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Harga OTR (Rp)
-            </label>
-            <input
-              type="number"
-              name="price"
-              defaultValue={initialData?.price || ""}
-              required
-              placeholder="Masukkan Harga"
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-            />
+        <div className="p-4 bg-neutral-50 rounded-md border border-neutral-200 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+                Harga OTR (Rp) *
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={priceValue || ""}
+                onChange={handlePriceChange}
+                required
+                placeholder="Contoh: 1000000000"
+                className="w-full rounded-md border border-neutral-300 px-3.5 py-2.5 text-base font-black text-neutral-950 focus:border-neutral-950 focus:outline-none bg-white"
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700">
+                  Mode Input Diskon
+                </label>
+                <div className="flex rounded-md border border-neutral-300 bg-white p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange("percentage")}
+                    className={`px-3 py-1 text-xs font-black uppercase rounded-xs transition-colors ${
+                      discountMode === "percentage"
+                        ? "bg-neutral-950 text-white"
+                        : "text-neutral-600 hover:text-neutral-950"
+                    }`}
+                  >
+                    Persen (%)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleModeChange("fixed")}
+                    className={`px-3 py-1 text-xs font-black uppercase rounded-xs transition-colors ${
+                      discountMode === "fixed"
+                        ? "bg-neutral-950 text-white"
+                        : "text-neutral-600 hover:text-neutral-950"
+                    }`}
+                  >
+                    Nominal (Rp)
+                  </button>
+                </div>
+              </div>
+
+              {discountMode === "percentage" ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={discountPercentValue || ""}
+                      onChange={handlePercentChange}
+                      placeholder="10"
+                      className="w-full rounded-md border border-neutral-300 px-3.5 py-2.5 text-xs font-bold focus:border-neutral-950 focus:outline-none bg-white pr-7"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black text-neutral-400">
+                      %
+                    </span>
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      readOnly
+                      value={`Rp ${discountPriceValue.toLocaleString("id-ID")}`}
+                      className="w-full rounded-md border border-neutral-200 bg-neutral-100 px-3 py-2.5 text-xs font-bold text-neutral-600 cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <input
+                  type="number"
+                  value={discountPriceValue || ""}
+                  onChange={handleFixedDiscountChange}
+                  placeholder="Masukkan nominal rupiah potongan..."
+                  className="w-full rounded-md border border-neutral-300 px-3.5 py-2.5 text-xs font-bold focus:border-neutral-950 focus:outline-none bg-white"
+                />
+              )}
+            </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Diskon (Rp)
-            </label>
-            <input
-              type="number"
-              name="discount_price"
-              defaultValue={initialData?.discount_price || 0}
-              placeholder="0"
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Status Unit
-            </label>
-            <select
-              name="status"
-              defaultValue={initialData?.status || "available"}
-              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
-            >
-              <option value="available">Tersedia</option>
-              <option value="sold">Terjual</option>
-            </select>
-          </div>
+
+          {/* Ringkasan Kalkulasi Harga Bersih */}
+          {priceValue > 0 && (
+            <div className="pt-3 border-t border-neutral-200 flex flex-wrap justify-between items-center text-xs gap-2">
+              <span className="font-bold text-neutral-600 uppercase tracking-wider">
+                Kalkulasi Harga Akhir:
+              </span>
+              <div className="flex items-baseline gap-2">
+                {discountPriceValue > 0 && (
+                  <span className="text-xs text-neutral-400 line-through font-semibold">
+                    Rp {priceValue.toLocaleString("id-ID")}
+                  </span>
+                )}
+                <span className="text-lg font-black text-red-600 tracking-tight">
+                  Rp {finalNetPrice.toLocaleString("id-ID")}
+                </span>
+                {discountPriceValue > 0 && (
+                  <span className="text-[10px] font-black uppercase bg-red-600 text-white px-1.5 py-0.5 rounded-xs">
+                    HEBAT! DISKON {discountPercentValue}% (POTONGAN Rp{" "}
+                    {discountPriceValue.toLocaleString("id-ID")})
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-neutral-700 mb-1">
-            Deskripsi Unit
+          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+            Status Publikasi Unit *
+          </label>
+          <select
+            name="status"
+            defaultValue={initialData?.status || "available"}
+            className="w-full sm:w-1/3 rounded-md border border-neutral-300 bg-white px-3.5 py-2 text-xs font-bold focus:border-neutral-950 focus:outline-none"
+          >
+            <option value="available">Tersedia (Available)</option>
+            <option value="sold">Terjual (Sold)</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
+            Deskripsi & Fitur Utama
           </label>
           <textarea
             name="description"
             rows={4}
             defaultValue={initialData?.description || ""}
-            placeholder="Tulis deskripsi kondisi kendaraan..."
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-xs focus:border-neutral-900 focus:outline-none"
+            placeholder="Tuliskan spesifikasi lengkap, catatan garansi, atau kondisi fisik mobil..."
+            className="w-full rounded-md border border-neutral-300 p-3.5 text-xs font-medium focus:border-neutral-950 focus:outline-none"
           />
         </div>
       </fieldset>
 
-      <div className="pt-2 border-t border-neutral-100 flex justify-end">
+      {/* Action Buttons */}
+      <div className="pt-4 border-t border-neutral-200 flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="rounded-md border border-neutral-300 px-6 py-2.5 text-xs font-bold text-neutral-700 hover:bg-neutral-100 transition-colors uppercase tracking-wider"
+        >
+          Batal
+        </button>
         <button
           type="submit"
           disabled={loading || uploadingCategory !== null}
-          className="rounded-xl bg-neutral-900 px-6 py-2.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 cursor-pointer"
+          className="rounded-md bg-neutral-950 px-8 py-2.5 text-xs font-bold text-white hover:bg-neutral-800 disabled:opacity-50 transition-colors uppercase tracking-wider cursor-pointer"
         >
           {loading
-            ? "Menyimpan Data..."
+            ? "MENYIMPAN..."
             : initialData
-              ? "Simpan Perubahan"
-              : "Tambah Mobil"}
+              ? "SIMPAN PERUBAHAN"
+              : "TAMBAH MOBIL"}
         </button>
       </div>
     </form>

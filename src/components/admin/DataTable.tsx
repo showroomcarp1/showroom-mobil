@@ -39,43 +39,67 @@ export default function DataTable({ cars }: DataTableProps) {
   };
 
   return (
-    <div className="rounded-md border border-neutral-200 bg-white shadow-xs overflow-hidden">
-      <div className="flex items-center justify-between p-5 border-b border-neutral-100">
+    <section
+      aria-label="Manajemen Inventaris Mobil"
+      className="border border-neutral-300 bg-white text-neutral-900 shadow-sm rounded-xl overflow-hidden"
+    >
+      {/* Header Tabel */}
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 sm:p-8 border-b border-neutral-300">
         <div>
-          <h3 className="text-base font-bold text-neutral-900">
+          <h2 className="text-xl font-black uppercase tracking-[0.15em] text-neutral-900">
             Inventaris Mobil
-          </h3>
-          <p className="text-xs text-neutral-500 mt-0.5">
-            Total unit terdaftar: {cars.length}
+          </h2>
+          <p className="text-xs font-bold uppercase tracking-wider text-neutral-500 mt-1">
+            Total Unit Terdaftar:{" "}
+            <span className="text-neutral-900 font-black">{cars.length}</span>
           </p>
         </div>
+
         <Link
           href="/admin/cars/new"
-          className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+          className="inline-flex h-12 items-center justify-center gap-2.5 bg-neutral-900 px-6 text-xs font-black uppercase tracking-[0.2em] text-white transition-opacity duration-200 hover:opacity-90 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-neutral-900 focus:ring-offset-2 rounded-lg"
         >
-          <FontAwesomeIcon icon={faPlus} className="h-3.5 w-3.5" />
-          Tambah Unit
+          <FontAwesomeIcon icon={faPlus} className="h-4 w-4" />
+          <span>Tambah Unit</span>
         </Link>
-      </div>
+      </header>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-neutral-600">
-          <thead className="bg-neutral-50 border-b border-neutral-100 text-neutral-900 font-semibold uppercase tracking-wider">
+      {/* Container Tabel dengan Overflow Scroll Bar Horizontal */}
+      <div className="overflow-x-auto custom-scrollbar">
+        <table className="w-full text-left text-xs font-bold uppercase tracking-wider text-neutral-900 border-collapse">
+          <caption className="sr-only">
+            Daftar inventaris mobil terdaftar
+          </caption>
+
+          <thead className="bg-neutral-100 border-b border-neutral-300 text-neutral-900 font-black">
             <tr>
-              <th className="px-6 py-3.5">Unit Mobil</th>
-              <th className="px-6 py-3.5">Tahun</th>
-              <th className="px-6 py-3.5">Transmisi</th>
-              <th className="px-6 py-3.5">Harga OTR</th>
-              <th className="px-6 py-3.5">Status</th>
-              <th className="px-6 py-3.5 text-right">Aksi</th>
+              <th scope="col" className="px-6 py-4">
+                Unit Mobil
+              </th>
+              <th scope="col" className="px-6 py-4">
+                Tahun
+              </th>
+              <th scope="col" className="px-6 py-4">
+                Transmisi
+              </th>
+              <th scope="col" className="px-6 py-4">
+                Harga OTR
+              </th>
+              <th scope="col" className="px-6 py-4">
+                Status
+              </th>
+              <th scope="col" className="px-6 py-4 text-right">
+                Aksi
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-neutral-100">
+
+          <tbody className="divide-y divide-neutral-200">
             {cars.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
-                  className="px-6 py-8 text-center text-neutral-400"
+                  className="px-6 py-12 text-center text-neutral-400 font-bold uppercase tracking-wider"
                 >
                   Belum ada data unit mobil.
                 </td>
@@ -91,13 +115,11 @@ export default function DataTable({ cars }: DataTableProps) {
                   `${car.brand} ${car.model} ${car.variant || ""}`.trim();
 
                 return (
-                  <tr
-                    key={car.id}
-                    className="hover:bg-neutral-50/60 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative h-12 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100">
+                  <tr key={car.id}>
+                    {/* Column 1: Unit Mobil */}
+                    <td className="px-6 py-4 align-middle">
+                      <div className="flex items-center gap-4">
+                        <div className="relative h-14 w-20 flex-shrink-0 overflow-hidden border border-neutral-300 bg-neutral-100 rounded-md">
                           {thumbnail ? (
                             <Image
                               src={thumbnail}
@@ -109,63 +131,79 @@ export default function DataTable({ cars }: DataTableProps) {
                             <div className="flex h-full w-full items-center justify-center text-neutral-400">
                               <FontAwesomeIcon
                                 icon={faCar}
-                                className="h-4 w-4"
+                                className="h-5 w-5"
                               />
                             </div>
                           )}
                         </div>
-                        <div>
-                          <p className="font-bold text-neutral-900">
+                        <div className="flex flex-col justify-center">
+                          <p className="font-black text-neutral-900 text-sm tracking-wide line-clamp-1">
                             {displayTitle}
                           </p>
-                          <span className="block text-[10px] text-neutral-500">
-                            Slug: {car.slug || car.id}
+                          <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest mt-0.5">
+                            ID: {car.slug || car.id}
                           </span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">{car.year}</td>
-                    <td className="px-6 py-4">{car.transmission}</td>
-                    <td className="px-6 py-4 font-semibold text-neutral-900">
+
+                    {/* Column 2: Tahun */}
+                    <td className="px-6 py-4 align-middle font-bold text-neutral-900">
+                      {car.year}
+                    </td>
+
+                    {/* Column 3: Transmisi */}
+                    <td className="px-6 py-4 align-middle font-bold text-neutral-900 whitespace-nowrap">
+                      {car.transmission}
+                    </td>
+
+                    {/* Column 4: Harga OTR */}
+                    <td className="px-6 py-4 align-middle font-black text-neutral-900 whitespace-nowrap text-sm">
                       {formatRupiah(
                         car.discount_price
                           ? car.price - car.discount_price
                           : car.price,
                       )}
                     </td>
-                    <td className="px-6 py-4">
+
+                    {/* Column 5: Status */}
+                    <td className="px-6 py-4 align-middle whitespace-nowrap">
                       <span
-                        className={`inline-flex px-2 py-0.5 text-[10px] font-semibold ${
+                        className={`inline-flex items-center px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md border ${
                           car.status === "available"
-                            ? "bg-emerald-700 text-white"
-                            : "bg-neutral-100 text-neutral-600 border border-neutral-200"
+                            ? "bg-emerald-600 text-white"
+                            : "bg-neutral-100 text-neutral-600 "
                         }`}
                       >
                         {car.status === "available" ? "Tersedia" : "Terjual"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <Link
-                        href={`/admin/cars/${car.id}`}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-200 text-neutral-600 transition-colors hover:bg-neutral-100"
-                        title="Edit Unit & Gambar"
-                      >
-                        <FontAwesomeIcon
-                          icon={faPenToSquare}
-                          className="h-3.5 w-3.5"
-                        />
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(car.id)}
-                        disabled={isDeleting === car.id}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-red-500 border-red-200 text-white transition-colors hover:bg-red-600 disabled:opacity-50 cursor-pointer"
-                        title="Hapus Unit"
-                      >
-                        <FontAwesomeIcon
-                          icon={faTrash}
-                          className="h-3.5 w-3.5"
-                        />
-                      </button>
+
+                    {/* Column 6: Aksi */}
+                    <td className="px-6 py-4 align-middle text-right whitespace-nowrap">
+                      <div className="inline-flex items-center justify-end gap-2">
+                        <Link
+                          href={`/admin/cars/${car.id}`}
+                          className="inline-flex h-10 w-10 items-center justify-center border border-neutral-300 bg-white text-neutral-800 rounded-lg transition-opacity hover:opacity-75 focus:outline-none"
+                          title="Edit Unit & Gambar"
+                          aria-label={`Edit ${displayTitle}`}
+                        >
+                          <FontAwesomeIcon
+                            icon={faPenToSquare}
+                            className="h-4 w-4"
+                          />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(car.id)}
+                          disabled={isDeleting === car.id}
+                          className="inline-flex h-10 w-10 items-center justify-center border border-red-600 bg-red-600 text-white rounded-lg transition-opacity hover:opacity-90 active:scale-95 disabled:opacity-50 cursor-pointer focus:outline-none"
+                          title="Hapus Unit"
+                          aria-label={`Hapus ${displayTitle}`}
+                        >
+                          <FontAwesomeIcon icon={faTrash} className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -174,6 +212,6 @@ export default function DataTable({ cars }: DataTableProps) {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }

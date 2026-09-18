@@ -19,7 +19,7 @@ export default function CarDetailNav({
   return (
     <nav className="sticky top-0 z-30 border-y border-neutral-200 bg-white/95 backdrop-blur-md">
       <div className="mx-auto max-w-7xl">
-        <ul className="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-xs font-black tracking-widest text-neutral-500 py-1 px-4 scrollbar-none touch-pan-x">
+        <ul className="flex items-center gap-6 overflow-x-auto whitespace-nowrap text-[xs] font-black tracking-widest text-neutral-500 py-1 px-4 scrollbar-none touch-pan-x">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (

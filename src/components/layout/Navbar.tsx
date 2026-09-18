@@ -162,16 +162,18 @@ export default function Navbar() {
             aria-label="Homepage"
           >
             <div className="relative h-16 w-48 sm:w-60">
-              {isScrolled ? (
-                <Image
-                  src="/images/logo.png"
-                  alt="Showroom Logo"
-                  fill
-                  priority
-                  className="object-contain object-left"
-                />
-              ) : (
-                <div className="absolute -top-2 left-0 w-56 sm:w-72 h-28 sm:h-32 transition-all duration-300 pointer-events-none">
+              {/* Logo Biasa (Di Lapisan Bawah) */}
+              <Image
+                src="/images/logo.png"
+                alt="Showroom Logo"
+                fill
+                priority
+                className="object-contain object-left z-0"
+              />
+
+              {/* Big Logo: HANYA tampil di Desktop (md:block), Belum Scrolled, dan KHUSUS di /cars */}
+              {!isScrolled && pathname === "/cars" && (
+                <div className="hidden md:block absolute -top-2 left-0 w-56 sm:w-72 h-28 sm:h-32 transition-all duration-300 pointer-events-none z-10">
                   <Image
                     src="/images/big_logo.png"
                     alt="Showroom Large Logo"
@@ -183,7 +185,6 @@ export default function Navbar() {
               )}
             </div>
           </Link>
-
           {/* Nav Desktop */}
           <nav
             aria-label="Main Navigation"
@@ -355,15 +356,9 @@ export default function Navbar() {
                   <Link
                     href={isLoggedIn ? "/admin/dashboard" : "/admin/login"}
                     onClick={closeMenu}
-                    className="group inline-flex items-center gap-2.5 text-xs uppercase tracking-[0.2em] font-medium text-neutral-400 hover:text-white transition-colors duration-800 ease-in-out"
+                    className="group inline-flex items-center gap-2.5 text-[20px] uppercase tracking-[0.2em] font-semibold text-white"
                   >
-                    <span className="w-4 h-4 flex items-center justify-center transition-all duration-800 ease-in-out">
-                      <FontAwesomeIcon
-                        icon={faUser}
-                        className="text-[11px] text-neutral-400 group-hover:text-white transition-colors duration-800"
-                      />
-                    </span>
-                    <span>{isLoggedIn ? "Logged In" : "Log In"}</span>
+                    <span>{isLoggedIn ? "Dashboard" : "Log In"}</span>
                   </Link>
                 </div>
 
