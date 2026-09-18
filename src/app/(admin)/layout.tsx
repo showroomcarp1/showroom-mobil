@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
@@ -36,15 +35,13 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  // Inisialisasi instance Supabase dengan useMemo agar stabil
-  const supabase = useMemo(() => createClient(), []);
-
-  // Callback Logout
-  const handleLogout = useCallback(async () => {
+  // Callback Logout - Instance Supabase dipanggil di dalam fungsi (hanya saat diklik)
+  const handleLogout = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/admin/login");
     router.refresh();
-  }, [supabase, router]);
+  };
 
   if (pathname === "/admin/login") {
     return (
