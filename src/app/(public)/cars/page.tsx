@@ -87,12 +87,6 @@ export default async function CarsListingPage({
           preload="none"
           poster="/images/hero-video-poster.jpg"
           className="w-full h-full object-cover pointer-events-none"
-          // Mencegah video berjalan lebih dari 20 detik
-          onTimeUpdate={(e) => {
-            if (e.currentTarget.currentTime >= 20) {
-              e.currentTarget.currentTime = 0;
-            }
-          }}
         >
           <source src="/video/video.webm#t=0,20" type="video/webm" />
           <source src="/video/video.mp4#t=0,20" type="video/mp4" />
