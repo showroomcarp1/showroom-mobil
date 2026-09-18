@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CarImageGridProps {
   images: string[];
@@ -10,6 +11,18 @@ interface CarImageGridProps {
 
 export default function CarImageGrid({ images, altText }: CarImageGridProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Lock scroll background saat modal dibuka
+  useEffect(() => {
+    if (selectedImage) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [selectedImage]);
 
   if (!images || images.length === 0) {
     return (
@@ -21,7 +34,7 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
 
   return (
     <div className="space-y-4">
-      {/* Grid Foto Kotak-Kotak Sedang */}
+      {/* Grid Foto */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
         {images.map((img, idx) => (
           <div
@@ -40,28 +53,40 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
         ))}
       </div>
 
-      {/* Lightbox Preview saat diklik */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <div className="relative max-w-4xl w-full aspect-[16/9] overflow-hidden">
-            <Image
-              src={selectedImage}
-              alt="Preview"
-              fill
-              className="object-contain"
-            />
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 md:p-10 cursor-zoom-out"
+          >
+            {/* Tombol Close di Pojok Kanan Atas */}
             <button
+              type="button"
               onClick={() => setSelectedImage(null)}
-              className="absolute top-1 right-2  text-white rounded-full p-2 text-[30px] font-bold"
+              className="absolute top-5 right-5 md:top-8 md:right-8 text-white text-3xl md:text-4xl font-light cursor-pointer z-50 leading-none select-none"
             >
               ✕
             </button>
-          </div>
-        </div>
-      )}
+
+            {/* Container Gambar */}
+            <div
+              className="relative w-full h-full max-w-7xl max-h-[85vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={selectedImage}
+                alt={altText}
+                fill
+                className="object-contain select-none"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

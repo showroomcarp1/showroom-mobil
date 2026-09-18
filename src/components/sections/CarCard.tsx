@@ -27,33 +27,33 @@ export function CarCardSkeleton({
     );
   }
 
-return (
-  <div className="flex flex-col w-full bg-white p-3 sm:p-4 rounded-md animate-pulse">
-    <div className="aspect-4/3 w-full bg-neutral-200 rounded-md sm:rounded-none" />
-    <div className="mt-3 sm:mt-3 flex flex-col flex-1 justify-between">
-      <div>
-        {/* Skeleton Judul diperbesar di mobile (h-4.5 / 18px) */}
-        <div className="h-4.5 sm:h-5 bg-neutral-200 rounded-sm w-5/6 mb-1.5" />
-        <div className="h-4.5 sm:h-5 bg-neutral-200 rounded-sm w-2/3" />
+  return (
+    <div className="flex flex-col w-full bg-white p-3 sm:p-4 rounded-md animate-pulse">
+      <div className="aspect-4/3 w-full bg-neutral-200 rounded-md sm:rounded-none" />
+      <div className="mt-3 sm:mt-3 flex flex-col flex-1 justify-between">
+        <div>
+          {/* Skeleton Judul diperbesar di mobile (h-4.5 / 18px) */}
+          <div className="h-4.5 sm:h-5 bg-neutral-200 rounded-sm w-5/6 mb-1.5" />
+          <div className="h-4.5 sm:h-5 bg-neutral-200 rounded-sm w-2/3" />
 
-        {/* Skeleton Metadata */}
-        <div className="mt-2.5 flex items-center gap-1.5 sm:gap-2">
-          <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-10 sm:w-12" />
-          <div className="h-3 w-[1px] bg-neutral-200" />
-          <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-14 sm:w-16" />
-          <div className="h-3 w-[1px] bg-neutral-200" />
-          <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-8 sm:w-12" />
+          {/* Skeleton Metadata */}
+          <div className="mt-2.5 flex items-center gap-1.5 sm:gap-2">
+            <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-10 sm:w-12" />
+            <div className="h-3 w-[1px] bg-neutral-200" />
+            <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-14 sm:w-16" />
+            <div className="h-3 w-[1px] bg-neutral-200" />
+            <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-8 sm:w-12" />
+          </div>
+        </div>
+
+        {/* Skeleton Harga */}
+        <div className="mt-3 sm:mt-4 pt-2 border-t border-neutral-100 space-y-1.5">
+          <div className="h-3 sm:h-3 bg-neutral-200 rounded-sm w-24 sm:w-28" />
+          <div className="h-5 sm:h-6 bg-neutral-200 rounded-sm w-32 sm:w-36" />
         </div>
       </div>
-
-      {/* Skeleton Harga */}
-      <div className="mt-3 sm:mt-4 pt-2 border-t border-neutral-100 space-y-1.5">
-        <div className="h-3 sm:h-3 bg-neutral-200 rounded-sm w-24 sm:w-28" />
-        <div className="h-5 sm:h-6 bg-neutral-200 rounded-sm w-32 sm:w-36" />
-      </div>
     </div>
-  </div>
-);
+  );
 }
 
 // Helper untuk format teks transmisi (Manual/Automatic -> MT/AT khusus Mobile)
@@ -235,7 +235,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
                 {formattedFinalPrice}
               </p>
               {hasDiscount && (
-                <span className="text-[10px] sm:text-xs font-medium text-neutral-400 line-through">
+                <span className="relative inline-block text-[10px] sm:text-xs font-medium text-neutral-400 after:content-[''] after:absolute after:left-0 after:top-1/2 after:w-full after:h-[1px] after:bg-current after:-translate-y-1/2 after:-rotate-3">
                   {formattedOriginalPrice}
                 </span>
               )}

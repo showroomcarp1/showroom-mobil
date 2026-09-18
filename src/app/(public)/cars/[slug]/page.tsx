@@ -92,7 +92,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
       {/* Breadcrumb nav */}
       <nav aria-label="Breadcrumb" className="bg-white py-2">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ol className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-neutral-400 overflow-x-auto whitespace-nowrap scrollbar-none">
+          <ol className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-neutral-900 overflow-x-auto whitespace-nowrap scrollbar-none">
             <li>
               <Link
                 href="/cars"
@@ -118,7 +118,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
               className="h-2 w-2 text-neutral-300"
             />
             <li>
-              <span className="font-normal text-neutral-400">{car.brand}</span>
+              <span className="font-normal text-neutral-900">{car.brand}</span>
             </li>
             <FontAwesomeIcon
               icon={faChevronRight}
@@ -260,6 +260,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
 
       {/* Floating contact bar */}
       <DesktopFloatingBar
+        car={car}
         whatsappInquireMsg={whatsappInquireMsg}
         whatsappTestDriveMsg={whatsappTestDriveMsg}
       />

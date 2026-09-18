@@ -1,10 +1,11 @@
 "use client";
 
 import FontAwesomeIcon from "@/components/common/FontAwesomeIcon";
-import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { faCalendarCheck } from "@fortawesome/free-solid-svg-icons";
+import type { Car } from "@/types/cars";
 
 interface DesktopFloatingBarProps {
+  car?: Car;
   whatsappInquireMsg: string;
   whatsappTestDriveMsg: string;
 }
