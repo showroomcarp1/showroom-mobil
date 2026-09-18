@@ -12,6 +12,7 @@ import type { Database } from "@/types/database";
 
 type CarRow = Database["public"]["Tables"]["cars"]["Row"];
 type CarInsert = Database["public"]["Tables"]["cars"]["Insert"];
+type CarUpdate = Database["public"]["Tables"]["cars"]["Update"];
 
 export interface CreateCarInput {
   title: string;
@@ -79,7 +80,7 @@ export async function updateCar(
 ): Promise<void> {
   const supabase = await createClient();
 
-  const payload: Partial<CarInsert> = {
+  const payload: CarUpdate = {
     ...(data.title !== undefined && { title: data.title }),
     ...(data.brand !== undefined && { brand: data.brand }),
     ...(data.model !== undefined && { model: data.model }),
