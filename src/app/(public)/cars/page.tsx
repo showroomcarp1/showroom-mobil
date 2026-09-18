@@ -79,15 +79,20 @@ export default async function CarsListingPage({
   return (
     <main className="bg-white min-h-screen text-neutral-950 pb-16">
       {/* Hero Video Banner */}
-      <section className="relative w-full h-[80vh] min-h-[550px] max-h-[800px] bg-neutral-950">
+      <section className="relative w-full h-[80vh] min-h-[550px] max-h-[800px] bg-neutral-950 overflow-hidden">
         <video
           autoPlay
           loop
           muted
           playsInline
-          preload="auto"
-          className="w-full h-full object-cover"
+          // 1. Ganti 'auto' ke 'metadata' agar browser tidak langsung mengunduh seluruh file video sekaligus
+          preload="metadata"
+          // 2. Poster sebagai placeholder/fallback instan sebelum video mulai berputar
+          poster="/images/hero-video-poster.jpg"
+          className="w-full h-full object-cover pointer-events-none"
         >
+          {/* 3. Dahulukan format WebM yang jauh lebih ringan dibanding MP4 */}
+          <source src="/video/video.webm" type="video/webm" />
           <source src="/video/video.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
