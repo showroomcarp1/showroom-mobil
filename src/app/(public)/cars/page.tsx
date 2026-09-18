@@ -1,9 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import InventoryFilter from "@/components/sections/InventoryFilter";
 import CarCard from "@/components/sections/CarCard";
-import { Car } from "@/types/cars";
+import type {
+  Car,
+  ConditionType,
+  TransmissionType,
+  FuelType,
+} from "@/types/cars";
+import type { Database } from "@/types/database";
 
 export const revalidate = 0;
+
+type CarRow = Database["public"]["Tables"]["cars"]["Row"];
 
 interface SearchParamsProps {
   searchParams: Promise<{
@@ -24,16 +32,8 @@ export default async function CarsListingPage({
   searchParams,
 }: SearchParamsProps) {
   const resolvedSearchParams = await searchParams;
-  const {
-    brand,
-    condition,
-    transmission,
-    fuel_type,
-    max_price,
-    max_km,
-    location,
-    type,
-  } = resolvedSearchParams;
+  const { brand, condition, transmission, fuel_type, max_price, max_km } =
+    resolvedSearchParams;
 
   const supabase = await createClient();
   let query = supabase
@@ -45,20 +45,16 @@ export default async function CarsListingPage({
   if (brand && brand !== "All") {
     query = query.ilike("brand", `%${brand}%`);
   }
+
+  // Type Assertion yang aman ke enum type Supabase
   if (condition && condition !== "All") {
-    query = query.eq("condition", condition);
+    query = query.eq("condition", condition as ConditionType);
   }
   if (transmission && transmission !== "All") {
-    query = query.eq("transmission", transmission);
+    query = query.eq("transmission", transmission as TransmissionType);
   }
   if (fuel_type && fuel_type !== "All") {
-    query = query.eq("fuel_type", fuel_type);
-  }
-  if (type && type !== "All") {
-    query = query.ilike("body_type", `%${type}%`);
-  }
-  if (location && location !== "All") {
-    query = query.ilike("location", `%${location}%`);
+    query = query.eq("fuel_type", fuel_type as FuelType);
   }
   if (max_price) {
     query = query.lte("price", Number(max_price));
@@ -73,11 +69,16 @@ export default async function CarsListingPage({
     console.error("Failed to fetch vehicles from Supabase:", error.message);
   }
 
-  const carList = (cars as Car[]) || [];
+  const carList: Car[] = ((cars as CarRow[]) || []).map((car) => ({
+    ...car,
+    condition: car.condition as ConditionType,
+    transmission: car.transmission as TransmissionType,
+    fuel_type: car.fuel_type as FuelType,
+  })) as unknown as Car[];
 
   return (
     <main className="bg-white min-h-screen text-neutral-950 pb-16">
-      {/* Hero Video Banner Besar */}
+      {/* Hero Video Banner */}
       <section className="relative w-full h-[80vh] min-h-[550px] max-h-[800px] bg-neutral-950">
         <video
           autoPlay
