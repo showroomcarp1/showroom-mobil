@@ -3,7 +3,7 @@ import Footer from "@/components/layout/Footer";
 import HeroSlider from "@/components/sections/HeroSlider";
 import CarCard from "@/components/sections/CarCard";
 import { createClient } from "@/lib/supabase/server";
-import { Car } from "@/types/cars";
+import type { Car } from "@/types/cars";
 
 export const revalidate = 0; // Memastikan data selalu fresh
 
@@ -21,7 +21,18 @@ export default async function HomePage() {
     console.error("Gagal mengambil data mobil:", error.message);
   }
 
-  const carList: Car[] = cars || [];
+  // Transformasi null pada mileage ke undefined agar sesuai tipe Car
+  const carList: Car[] = (cars || []).map((car) => ({
+    ...car,
+    mileage: car.mileage ?? undefined,
+    discount_price: car.discount_price ?? undefined,
+    description: car.description ?? undefined,
+    image_url: car.image_url ?? undefined,
+    images: car.images ?? undefined,
+    exterior_images: car.exterior_images ?? undefined,
+    interior_images: car.interior_images ?? undefined,
+    features: car.features ?? undefined,
+  })) as Car[];
 
   return (
     <>
