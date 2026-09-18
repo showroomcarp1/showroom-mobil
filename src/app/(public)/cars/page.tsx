@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import InventoryFilter from "@/components/sections/InventoryFilter";
 import CarCard from "@/components/sections/CarCard";
+import HeroVideo from "@/components/sections/HeroVideo";
 import type {
   Car,
   ConditionType,
@@ -77,21 +78,13 @@ export default async function CarsListingPage({
 
   return (
     <main className="bg-white min-h-screen text-neutral-950 pb-16">
-      {/* Hero Video Banner Optimized */}
+      {/* Hero Video Banner (GPU Accelerated & Anti Re-render) */}
       <section className="relative w-full h-[80vh] min-h-[550px] max-h-[800px] bg-neutral-950 overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="none"
+        <HeroVideo
           poster="/images/hero-video-poster.jpg"
-          className="w-full h-full object-cover pointer-events-none"
-        >
-          <source src="/video/video.webm#t=0,20" type="video/webm" />
-          <source src="/video/video.mp4#t=0,20" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
+          webmSrc="/video/video.webm"
+          mp4Src="/video/video.mp4"
+        />
       </section>
 
       {/* Main Inventory Content */}
