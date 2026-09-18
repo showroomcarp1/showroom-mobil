@@ -46,7 +46,6 @@ export default async function CarsListingPage({
     query = query.ilike("brand", `%${brand}%`);
   }
 
-  // Type Assertion yang aman ke enum type Supabase
   if (condition && condition !== "All") {
     query = query.eq("condition", condition as ConditionType);
   }
@@ -78,22 +77,25 @@ export default async function CarsListingPage({
 
   return (
     <main className="bg-white min-h-screen text-neutral-950 pb-16">
-      {/* Hero Video Banner */}
+      {/* Hero Video Banner Optimized */}
       <section className="relative w-full h-[80vh] min-h-[550px] max-h-[800px] bg-neutral-950 overflow-hidden">
         <video
           autoPlay
           loop
           muted
           playsInline
-          // 1. Ganti 'auto' ke 'metadata' agar browser tidak langsung mengunduh seluruh file video sekaligus
-          preload="metadata"
-          // 2. Poster sebagai placeholder/fallback instan sebelum video mulai berputar
+          preload="none"
           poster="/images/hero-video-poster.jpg"
           className="w-full h-full object-cover pointer-events-none"
+          // Mencegah video berjalan lebih dari 20 detik
+          onTimeUpdate={(e) => {
+            if (e.currentTarget.currentTime >= 20) {
+              e.currentTarget.currentTime = 0;
+            }
+          }}
         >
-          {/* 3. Dahulukan format WebM yang jauh lebih ringan dibanding MP4 */}
-          <source src="/video/video.webm" type="video/webm" />
-          <source src="/video/video.mp4" type="video/mp4" />
+          <source src="/video/video.webm#t=0,20" type="video/webm" />
+          <source src="/video/video.mp4#t=0,20" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
       </section>

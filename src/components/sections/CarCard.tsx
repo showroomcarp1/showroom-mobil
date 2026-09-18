@@ -12,7 +12,7 @@ interface CarCardProps {
   variant?: "default" | "compact";
 }
 
-// Skeleton loading
+// Skeleton loading (Kembali persis seperti milik kamu)
 export function CarCardSkeleton({
   variant = "default",
 }: {
@@ -27,25 +27,50 @@ export function CarCardSkeleton({
     );
   }
 
-  return (
-    <div className="flex flex-col w-full bg-white p-2.5 sm:p-4 rounded-md animate-pulse">
-      <div className="aspect-4/3 w-full bg-neutral-200 rounded-md sm:rounded-none" />
-      <div className="mt-2 sm:mt-3 flex flex-col flex-1 justify-between">
-        <div>
-          <div className="h-3.5 sm:h-5 bg-neutral-200 rounded-sm w-5/6 mb-1.5" />
-          <div className="h-3.5 sm:h-5 bg-neutral-200 rounded-sm w-2/3" />
-          <div className="mt-2 flex items-center gap-1 sm:gap-2">
-            <div className="h-3 bg-neutral-200 rounded-sm w-8 sm:w-12" />
-            <div className="h-2.5 w-[1px] bg-neutral-200" />
-            <div className="h-3 bg-neutral-200 rounded-sm w-10 sm:w-16" />
-          </div>
-        </div>
-        <div className="mt-2.5 sm:mt-4 pt-2 border-t border-neutral-100 space-y-1">
-          <div className="h-2.5 sm:h-3 bg-neutral-200 rounded-sm w-20 sm:w-28" />
-          <div className="h-4 sm:h-6 bg-neutral-200 rounded-sm w-24 sm:w-36" />
+return (
+  <div className="flex flex-col w-full bg-white p-3 sm:p-4 rounded-md animate-pulse">
+    <div className="aspect-4/3 w-full bg-neutral-200 rounded-md sm:rounded-none" />
+    <div className="mt-3 sm:mt-3 flex flex-col flex-1 justify-between">
+      <div>
+        {/* Skeleton Judul diperbesar di mobile (h-4.5 / 18px) */}
+        <div className="h-4.5 sm:h-5 bg-neutral-200 rounded-sm w-5/6 mb-1.5" />
+        <div className="h-4.5 sm:h-5 bg-neutral-200 rounded-sm w-2/3" />
+
+        {/* Skeleton Metadata */}
+        <div className="mt-2.5 flex items-center gap-1.5 sm:gap-2">
+          <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-10 sm:w-12" />
+          <div className="h-3 w-[1px] bg-neutral-200" />
+          <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-14 sm:w-16" />
+          <div className="h-3 w-[1px] bg-neutral-200" />
+          <div className="h-3.5 sm:h-3 bg-neutral-200 rounded-sm w-8 sm:w-12" />
         </div>
       </div>
+
+      {/* Skeleton Harga */}
+      <div className="mt-3 sm:mt-4 pt-2 border-t border-neutral-100 space-y-1.5">
+        <div className="h-3 sm:h-3 bg-neutral-200 rounded-sm w-24 sm:w-28" />
+        <div className="h-5 sm:h-6 bg-neutral-200 rounded-sm w-32 sm:w-36" />
+      </div>
     </div>
+  </div>
+);
+}
+
+// Helper untuk format teks transmisi (Manual/Automatic -> MT/AT khusus Mobile)
+function formatTransmission(transmission?: string | null) {
+  if (!transmission) return null;
+  const transLower = transmission.toLowerCase();
+
+  let mobileText = transmission;
+  if (transLower.includes("manual")) mobileText = "MT";
+  else if (transLower.includes("automatic") || transLower.includes("otomatis"))
+    mobileText = "AT";
+
+  return (
+    <span>
+      <span className="inline sm:hidden">{mobileText}</span>
+      <span className="hidden sm:inline">{transmission}</span>
+    </span>
   );
 }
 
@@ -83,14 +108,9 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
   const hasDiscount = discountCutAmount > 0;
   const finalPrice = Math.max(0, rawPrice - discountCutAmount);
 
-  const currencyFormatter = new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  });
-
-  const formattedOriginalPrice = currencyFormatter.format(rawPrice);
-  const formattedFinalPrice = currencyFormatter.format(finalPrice);
+  // Format angka harga
+  const formattedOriginalPrice = `IDR ${rawPrice.toLocaleString("id-ID")}`;
+  const formattedFinalPrice = `IDR ${finalPrice.toLocaleString("id-ID")}`;
 
   const formattedMileage =
     typeof car.mileage === "number"
@@ -106,7 +126,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
   const metadataItems = [
     car.year ? `${car.year}` : null,
     formattedMileage,
-    car.transmission ? car.transmission : null,
+    formatTransmission(car.transmission),
   ].filter(Boolean);
 
   // Variant compact
@@ -184,7 +204,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
         </figure>
 
         {/* Info & Harga */}
-        <div className="mt-2 sm:mt-3 flex flex-col flex-1 justify-between p-2 sm:p-0">
+        <section className="mt-2 sm:mt-3 flex flex-col flex-1 justify-between p-2 sm:p-0">
           <header>
             <h3 className="text-sm sm:text-[18px] font-bold text-neutral-950 leading-snug tracking-tight transition-colors line-clamp-2 min-h-[2.2rem] sm:min-h-[2.6rem] uppercase">
               {displayTitle}
@@ -221,7 +241,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
               )}
             </div>
           </footer>
-        </div>
+        </section>
       </Link>
     </motion.article>
   );
