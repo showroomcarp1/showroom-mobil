@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,9 @@ import { faXmark, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
+
+  // Menggunakan useMemo agar instance client konsisten dan aman
+  const supabase = useMemo(() => createClient(), []);
 
   // State form dan UI
   const [email, setEmail] = useState("");
