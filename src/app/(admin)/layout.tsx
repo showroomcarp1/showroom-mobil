@@ -1,9 +1,9 @@
 "use client";
 
+import { useMemo, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import FontAwesomeIcon from "@/components/common/FontAwesomeIcon";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faCar,
   faGauge,
@@ -12,8 +12,16 @@ import {
   faRightFromBracket,
   faGlobe,
 } from "@fortawesome/free-solid-svg-icons";
+import { createClient } from "@/lib/supabase/client";
+import FontAwesomeIcon from "@/components/common/FontAwesomeIcon";
 
-const ADMIN_NAV_ITEMS = [
+interface AdminNavItem {
+  href: string;
+  label: string;
+  icon: IconDefinition;
+}
+
+const ADMIN_NAV_ITEMS: readonly AdminNavItem[] = [
   { href: "/admin/dashboard", label: "Dashboard", icon: faGauge },
   { href: "/admin/cars", label: "Katalog Mobil", icon: faCar },
   { href: "/admin/cars/new", label: "Tambah Unit", icon: faPlus },
@@ -27,13 +35,16 @@ export default function AdminLayout({
 }>) {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
 
-  const handleLogout = async () => {
+  // Inisialisasi instance Supabase dengan useMemo agar stabil
+  const supabase = useMemo(() => createClient(), []);
+
+  // Callback Logout
+  const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
     router.push("/admin/login");
     router.refresh();
-  };
+  }, [supabase, router]);
 
   if (pathname === "/admin/login") {
     return (
@@ -58,7 +69,6 @@ export default function AdminLayout({
             {ADMIN_NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (
-                //button
                 <Link
                   key={item.href}
                   href={item.href}
@@ -83,7 +93,6 @@ export default function AdminLayout({
 
         {/* Footer Sidebar */}
         <footer className="pt-3 border-t border-neutral-200 space-y-1">
-          {/*button*/}
           <Link
             href="/cars"
             className="flex items-center gap-3 rounded-md px-3 py-3 bg-blue-600 text-[15px] font-medium text-white transition-all duration-150 active:scale-[0.98]"
@@ -95,8 +104,6 @@ export default function AdminLayout({
             <span>Halaman Utama</span>
           </Link>
 
-          {/* Logout Button Merah Rounded-MD  */}
-          {/*button*/}
           <button
             type="button"
             onClick={handleLogout}
@@ -120,14 +127,12 @@ export default function AdminLayout({
           </span>
 
           <div className="flex items-center gap-2">
-            {/*button*/}
             <Link
               href="/"
               className="rounded-md bg-blue-600 px-2.5 py-2 text-xs font-semibold text-white"
             >
               Beranda
             </Link>
-            {/*button*/}
             <button
               type="button"
               onClick={handleLogout}
