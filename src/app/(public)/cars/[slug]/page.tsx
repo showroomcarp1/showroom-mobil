@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public"; // Import client publik tanpa cookies
 import { notFound } from "next/navigation";
+import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import CarDetailContent from "@/components/sections/CarDetailContent";
 import MobileStickyBar from "@/components/common/MobileStickyBar";
@@ -26,55 +27,53 @@ const conditionBreadcrumbLabel: Record<ConditionType, string> = {
   Exclusive: "EXCLUSIVE CAR",
 };
 
-// Helper untuk mengecek apakah string merupakan format UUID v4
 function isUUID(str: string) {
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(str);
 }
 
+// Caching layer dengan Public Supabase Client (Bebas Error Dynamic Data Source)
+const getCachedCar = (slugParam: string) =>
+  unstable_cache(
+    async () => {
+      const supabase = createPublicClient(); // Gunakan client publik di sini
+      let carData: Car | null = null;
+
+      const { data: dataBySlug } = await supabase
+        .from("cars")
+        .select("*")
+        .eq("slug", slugParam)
+        .maybeSingle();
+
+      carData = dataBySlug as Car | null;
+
+      if (!carData && (isUUID(slugParam) || !isNaN(Number(slugParam)))) {
+        const { data: dataById } = await supabase
+          .from("cars")
+          .select("*")
+          .eq("id", slugParam)
+          .maybeSingle();
+
+        carData = dataById as Car | null;
+      }
+
+      return carData;
+    },
+    [`car-detail-${slugParam}`],
+    { revalidate: 3600, tags: ["cars"] },
+  )();
+
 export default async function CarDetailPage({ params }: CarDetailPageProps) {
   const resolvedParams = await params;
   const rawParam = decodeURIComponent(resolvedParams.slug);
-  const supabase = await createClient();
 
-  let car: Car | null = null;
+  const car = await getCachedCar(rawParam);
 
-  // 1. Kueri utama berdasarkan slug
-  const { data: carBySlug, error: slugError } = await supabase
-    .from("cars")
-    .select("*")
-    .eq("slug", rawParam)
-    .maybeSingle();
-
-  if (slugError) {
-    console.error("Error fetching car by slug:", slugError.message);
-  }
-
-  car = carBySlug as Car | null;
-
-  // 2. Fallback: Kueri berdasarkan ID jika slug tidak ditemukan
-  // Hanya jalankan jika rawParam adalah angka/integer ATAU UUID yang valid untuk mencegah Postgres Type Error
-  if (!car && (isUUID(rawParam) || !isNaN(Number(rawParam)))) {
-    const { data: carById, error: idError } = await supabase
-      .from("cars")
-      .select("*")
-      .eq("id", rawParam)
-      .maybeSingle();
-
-    if (idError) {
-      console.error("Error fetching car by ID:", idError.message);
-    }
-
-    car = carById as Car | null;
-  }
-
-  // Jika tetap tidak ditemukan, tampilkan 404
   if (!car) {
     notFound();
   }
 
-  // Kalkulasi Diskon
   const rawPrice = car.price || 0;
   const rawDiscount = car.discount_price || 0;
 
@@ -110,13 +109,13 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
 
   return (
     <main className="bg-white pt-3 lg:pt-6 pb-28 lg:pb-20 text-neutral-900 relative min-h-screen">
-      {/* Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" className="bg-white py-2">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <ol className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-neutral-900 overflow-x-auto whitespace-nowrap scrollbar-none">
             <li>
               <Link
                 href="/cars"
+                prefetch={true}
                 className="font-normal hover:text-black transition-colors"
               >
                 HOME
@@ -130,6 +129,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
             <li>
               <Link
                 href="/cars"
+                prefetch={true}
                 className="font-normal hover:text-black transition-colors"
               >
                 {conditionBreadcrumbLabel[car.condition] || "CAR"}
@@ -157,10 +157,8 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
         </div>
       </nav>
 
-      {/* Main Content Detail Container */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
         <CarDetailContent car={car}>
-          {/* Section Informasi Mobil */}
           <article className="space-y-6">
             <header className="space-y-2 border-b border-neutral-100 pb-5">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-neutral-900 leading-tight">
@@ -188,7 +186,6 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
               </div>
             </header>
 
-            {/* Spesifikasi Utama */}
             <section aria-label="Spesifikasi Utama">
               <dl className="divide-y divide-neutral-100 border-y border-neutral-100">
                 <div className="flex items-center justify-between py-3">
@@ -282,7 +279,6 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
         </CarDetailContent>
       </div>
 
-      {/* Floating Action Bar */}
       <DesktopFloatingBar
         car={car}
         whatsappInquireMsg={whatsappInquireMsg}
