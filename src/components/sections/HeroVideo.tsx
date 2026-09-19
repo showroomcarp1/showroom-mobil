@@ -15,31 +15,31 @@ const HeroVideo = memo(function HeroVideo({
 }: HeroVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // fungsi untuk reset video ke detik 0 jika mencapai detik 20
   const handleTimeUpdate = () => {
     if (videoRef.current && videoRef.current.currentTime >= 30) {
       videoRef.current.currentTime = 0;
+      // fungsi memastikan video tetap berjalan secara seamless
       videoRef.current.play().catch(() => {});
     }
   };
 
   return (
-    <div className="relative w-full h-full bg-neutral-950 overflow-hidden select-none">
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        poster={poster}
-        onTimeUpdate={handleTimeUpdate}
-        className="w-full h-full object-cover pointer-events-none transform-gpu translate-z-0"
-      >
-        <source src={webmSrc} type="video/webm" />
-        <source src={mp4Src} type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-neutral-950/30 pointer-events-none" />
-    </div>
+    <video
+      ref={videoRef}
+      autoPlay
+      muted
+      playsInline
+      preload="auto"
+      poster={poster}
+      onTimeUpdate={handleTimeUpdate}
+      /* GPU Acceleration & Layout Shift Protection */
+      className="w-full h-full object-cover pointer-events-none transform-gpu will-change-transform translate-z-0 backface-hidden"
+    >
+      <source src={webmSrc} type="video/webm" />
+      <source src={mp4Src} type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
   );
 });
 
