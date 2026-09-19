@@ -10,7 +10,8 @@ import type {
 } from "@/types/cars";
 import type { Database } from "@/types/database";
 
-export const revalidate = 0;
+// Apple-style: Manfaatkan Edge Cache selama 60 detik agar render instan
+export const revalidate = 60;
 
 type CarRow = Database["public"]["Tables"]["cars"]["Row"];
 
@@ -22,46 +23,35 @@ interface SearchParamsProps {
     fuel_type?: string;
     max_price?: string;
     max_km?: string;
-    location?: string;
-    type?: string;
-    price?: string;
-    year?: string;
   }>;
 }
 
 export default async function CarsListingPage({
   searchParams,
 }: SearchParamsProps) {
-  const resolvedSearchParams = await searchParams;
   const { brand, condition, transmission, fuel_type, max_price, max_km } =
-    resolvedSearchParams;
+    await searchParams;
 
   const supabase = await createClient();
+
+  // Optimasi 1: Ambil hanya kolom yang dibutuhkan untuk listing, bukan '*'
   let query = supabase
     .from("cars")
-    .select("*")
+    .select(
+      "id, title, brand, model, year, price, mileage, condition, transmission, fuel_type, image_url, status, created_at",
+    )
     .eq("status", "available")
     .order("created_at", { ascending: false });
 
-  if (brand && brand !== "All") {
-    query = query.ilike("brand", `%${brand}%`);
-  }
-
-  if (condition && condition !== "All") {
+  if (brand && brand !== "All") query = query.ilike("brand", `%${brand}%`);
+  if (condition && condition !== "All")
     query = query.eq("condition", condition as ConditionType);
-  }
-  if (transmission && transmission !== "All") {
+  if (transmission && transmission !== "All")
     query = query.eq("transmission", transmission as TransmissionType);
-  }
-  if (fuel_type && fuel_type !== "All") {
+  if (fuel_type && fuel_type !== "All")
     query = query.eq("fuel_type", fuel_type as FuelType);
-  }
-  if (max_price) {
-    query = query.lte("price", Number(max_price));
-  }
-  if (max_km) {
-    query = query.lte("mileage", Number(max_km));
-  }
+  if (max_price) query = query.lte("price", Number(max_price));
+  if (max_km) query = query.lte("mileage", Number(max_km));
 
   const { data: cars, error } = await query;
 
@@ -78,8 +68,8 @@ export default async function CarsListingPage({
 
   return (
     <main className="bg-white min-h-screen text-neutral-950 pb-16">
-      {/* Hero Video Banner (GPU Accelerated & Anti Re-render) */}
-      <section className="relative w-full h-[80vh] min-h-[550px] max-h-[800px] bg-neutral-950 overflow-hidden">
+      {/* Hero Video Section */}
+      <section className="relative w-full h-[75vh] min-h-[500px] max-h-[800px] bg-neutral-950 overflow-hidden">
         <HeroVideo
           poster="/images/hero-video-poster.jpg"
           webmSrc="/video/video.webm"
@@ -87,7 +77,7 @@ export default async function CarsListingPage({
         />
       </section>
 
-      {/* Main Inventory Content */}
+      {/* Main Inventory */}
       <div className="relative z-30 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-20 sm:-mt-24">
         <InventoryFilter
           currentFilters={{
@@ -101,8 +91,8 @@ export default async function CarsListingPage({
         >
           <section aria-label="Vehicle Listing" className="pt-6">
             {carList.length === 0 ? (
-              <div className=" p-16 text-center">
-                <p className="text-[12px] md:text-xs text-neutral-500 font-bold tracking-[0.2em] uppercase">
+              <div className="p-16 text-center">
+                <p className="text-xs text-neutral-500 font-bold tracking-[0.2em] uppercase">
                   No Vehicles Match Your Criteria
                 </p>
               </div>
@@ -119,5 +109,3 @@ export default async function CarsListingPage({
     </main>
   );
 }
-
-//mengubah cols card
