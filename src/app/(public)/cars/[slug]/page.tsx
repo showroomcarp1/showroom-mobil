@@ -105,45 +105,69 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
     <main className="bg-white pt-3 lg:pt-6 pb-28 lg:pb-20 text-neutral-900 relative min-h-screen">
       <nav aria-label="Breadcrumb" className="bg-white py-2">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ol className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-neutral-900 overflow-x-auto whitespace-nowrap scrollbar-none">
+          <ol className="flex items-center flex-wrap gap-2 text-xs text-neutral-500 font-medium tracking-wide">
             <li>
               <Link
                 href="/cars"
                 prefetch={true}
-                className="font-normal hover:text-black transition-colors"
+                className="text-neutral-500 hover:text-black uppercase tracking-wider transition-colors"
               >
-                HOME
+                Home
               </Link>
             </li>
-            <FontAwesomeIcon
-              icon={faChevronRight}
-              className="h-2 w-2 text-neutral-300"
+
+            <li
               aria-hidden="true"
-            />
+              className="flex items-center text-neutral-300 select-none"
+            >
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                className="h-2.5 w-2.5 stroke-[2]"
+              />
+            </li>
+
             <li>
               <Link
                 href="/cars"
                 prefetch={true}
-                className="font-normal hover:text-black transition-colors"
+                className="text-neutral-500 hover:text-black uppercase tracking-wider transition-colors"
               >
-                {conditionBreadcrumbLabel[car.condition] || "CAR"}
+                {conditionBreadcrumbLabel[car.condition] || "Car"}
               </Link>
             </li>
-            <FontAwesomeIcon
-              icon={faChevronRight}
-              className="h-2 w-2 text-neutral-300"
+
+            <li
               aria-hidden="true"
-            />
-            <li>
-              <span className="font-normal text-neutral-900">{car.brand}</span>
+              className="flex items-center text-neutral-300 select-none"
+            >
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                className="h-2.5 w-2.5 stroke-[2]"
+              />
             </li>
-            <FontAwesomeIcon
-              icon={faChevronRight}
-              className="h-2 w-2 text-neutral-300"
-              aria-hidden="true"
-            />
+
             <li>
-              <span className="font-extrabold text-black truncate max-w-[200px] inline-block align-bottom">
+              <span className="text-neutral-700 uppercase tracking-wider">
+                {car.brand}
+              </span>
+            </li>
+
+            <li
+              aria-hidden="true"
+              className="flex items-center text-neutral-300 select-none"
+            >
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                className="h-2.5 w-2.5 stroke-[2]"
+              />
+            </li>
+
+            <li className="min-w-0">
+              <span
+                aria-current="page"
+                className="font-semibold text-neutral-900 truncate max-w-[180px] sm:max-w-[260px] block"
+                title={carTitle}
+              >
                 {carTitle}
               </span>
             </li>
