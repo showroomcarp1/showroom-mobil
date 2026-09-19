@@ -74,29 +74,30 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
 
   return (
     <section aria-label={`Galeri foto ${altText}`} className="space-y-4">
-      <figure className="group relative aspect-[18/12] w-full overflow-hidden bg-neutral-950">
+      <figure className="group relative aspect-[18/12] w-full overflow-hidden rounded-lg bg-neutral-950">
         <Image
           src={activeImages[selectedIndex]}
           alt={`${altText} - Utama`}
           fill
           priority
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 70vw, 50vw"
-          className="object-cover object-center cursor-pointer"
+          className="cursor-pointer object-cover object-center"
           onClick={() => setIsLightboxOpen(true)}
         />
 
+        {/* Tombol Enlarge */}
         <button
           type="button"
           onClick={() => setIsLightboxOpen(true)}
           aria-label="Tampilkan gambar ukuran penuh"
-          className="absolute bottom-4 right-4 z-10 p-2 bg-black/40 hover:bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 rounded focus:opacity-100"
+          className="absolute bottom-4 right-4 z-10 bg-transparent p-0 text-white opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 focus:opacity-100 focus:outline-none cursor-pointer"
         >
           <svg
             viewBox="0 0 32 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.6"
-            className="h-8 w-8 text-white"
+            strokeWidth="1.8"
+            className="h-10 w-10 text-white drop-shadow-md transition-transform duration-300 ease-in-out scale-100 group-hover:scale-80 hover:!scale-80 focus:scale-80"
             aria-hidden="true"
           >
             <path d="M2 7V2h6M24 2h6v5M2 17v5h6M24 22h6v-5" />
@@ -104,6 +105,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
         </button>
       </figure>
 
+      {/* Navigasi Thumbnail */}
       {activeImages.length > 1 && (
         <nav aria-label="Thumbnail galeri">
           <ul className="flex gap-2.5 overflow-x-auto pb-1 scrollbar-none">
@@ -116,7 +118,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                     onClick={() => setSelectedIndex(idx)}
                     aria-label={`Lihat foto ${idx + 1}`}
                     aria-current={isSelected ? "true" : "false"}
-                    className={`relative h-16 w-24 sm:h-20 sm:w-32 overflow-hidden bg-neutral-900 transition-opacity duration-150 ${
+                    className={`relative h-16 w-24 overflow-hidden rounded bg-neutral-900 transition-opacity duration-200 sm:h-20 sm:w-32 ${
                       isSelected
                         ? "ring-2 ring-neutral-900 opacity-100"
                         : "opacity-50 hover:opacity-100"
@@ -139,24 +141,26 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
         </nav>
       )}
 
+      {/* Lightbox / Modal */}
       {isLightboxOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 sm:p-8 backdrop-blur-xs animate-in fade-in duration-150"
+          aria-label={`Tampilan penuh ${altText}`}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-xs animate-in fade-in duration-200 sm:p-8"
           onClick={() => setIsLightboxOpen(false)}
         >
           <button
             type="button"
             onClick={() => setIsLightboxOpen(false)}
             aria-label="Tutup tampilan gambar"
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white/80 hover:text-white p-2 text-3xl font-light cursor-pointer z-50 leading-none focus:outline-none"
+            className="absolute top-4 right-4 z-50 cursor-pointer p-2 text-3xl font-light text-white/80 transition-colors hover:text-white focus:outline-none sm:top-6 sm:right-6"
           >
             ✕
           </button>
 
           <figure
-            className="relative h-full w-full max-w-6xl max-h-[85vh] flex items-center justify-center overflow-hidden"
+            className="relative flex h-full max-h-[85vh] w-full max-w-6xl items-center justify-center overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <Image
@@ -165,7 +169,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
               fill
               sizes="100vw"
               priority
-              className="object-contain select-none"
+              className="select-none object-contain"
             />
 
             {activeImages.length > 1 && (
@@ -177,7 +181,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                     handlePrev();
                   }}
                   aria-label="Gambar sebelumnya"
-                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors z-20 focus:outline-none"
+                  className="absolute left-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/40 p-3 text-white transition-colors hover:bg-black/70 focus:outline-none sm:left-4"
                 >
                   <FontAwesomeIcon icon={faChevronLeft} className="h-6 w-6" />
                 </button>
@@ -189,14 +193,14 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                     handleNext();
                   }}
                   aria-label="Gambar selanjutnya"
-                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors z-20 focus:outline-none"
+                  className="absolute right-2 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/40 p-3 text-white transition-colors hover:bg-black/70 focus:outline-none sm:right-4"
                 >
                   <FontAwesomeIcon icon={faChevronRight} className="h-6 w-6" />
                 </button>
               </>
             )}
 
-            <figcaption className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs font-semibold uppercase tracking-widest text-neutral-300 bg-black/60 px-3 py-1 rounded-full">
+            <figcaption className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold tracking-widest text-neutral-300 uppercase">
               {selectedIndex + 1} / {activeImages.length}
             </figcaption>
           </figure>
