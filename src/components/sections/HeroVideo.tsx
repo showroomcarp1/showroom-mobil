@@ -8,31 +8,30 @@ interface HeroVideoProps {
 }
 
 const STORAGE_KEY = "hero_video_time";
-const PLAYING_KEY = "hero_video_was_playing";
 
 export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
-  // 1. Cek cache secara sinkron saat komponen pertama kali dirender
-  const [hasCache] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !!sessionStorage.getItem(STORAGE_KEY);
-  });
-
-  // Jika sudah ada cache navigasi sebelumnya, langsung load video tanpa delay 300ms
-  const [shouldLoadVideo, setShouldLoadVideo] = useState(hasCache);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (!shouldLoadVideo) {
-      // Hanya beri delay kecil jika ini benar-based "First Visit" aplikasi
+    // Jalankan pengecekan cache HANYA di client-side (mencegah Mismatch Hydration)
+    const savedTime = sessionStorage.getItem(STORAGE_KEY);
+
+    if (savedTime) {
+      // Bungkus dengan queueMicrotask untuk menghindari synchronous setState di useEffect
+      queueMicrotask(() => {
+        setShouldLoadVideo(true);
+      });
+    } else {
+      // First visit: beri delay kecil agar render awal halaman tetap instan
       const timer = setTimeout(() => {
         setShouldLoadVideo(true);
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [shouldLoadVideo]);
+  }, []);
 
-  // Handler saat metadata video siap
   const handleLoadedMetadata = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -58,7 +57,6 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
     if (!videoRef.current) return;
 
     const currentTime = videoRef.current.currentTime;
-    // Simpan detik video ke cache
     sessionStorage.setItem(STORAGE_KEY, currentTime.toString());
 
     // Loop maksimal 30 detik
@@ -71,7 +69,7 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
 
   return (
     <div className="relative w-full h-full bg-neutral-950 overflow-hidden">
-      {/* 1. Poster Image (Instan tampil 0ms sebagai penutup layar hitam) */}
+      {/* 1. Poster Image (Tampil awal 0ms dari SSR sebagai pelindung kedipan hitam) */}
       <img
         src={poster}
         alt="Hero Banner"
@@ -80,7 +78,7 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
         }`}
       />
 
-      {/* 2. Video Element dengan Instant Fallback Poster */}
+      {/* 2. Video Element (Dirender konsisten setelah Hydration selesai) */}
       {shouldLoadVideo && (
         <video
           ref={videoRef}
