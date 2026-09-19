@@ -277,7 +277,7 @@ export default function MobileStickyBar({
                     required
                     name="name"
                     autoComplete="name"
-                    placeholder="Enter Your Name"
+                    placeholder="Your Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black bg-neutral-50"
@@ -293,7 +293,7 @@ export default function MobileStickyBar({
                     required
                     name="phone"
                     autoComplete="tel"
-                    placeholder="+62 812 3456 7890"
+                    placeholder="Your Phone Number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full rounded-lg border border-neutral-300 px-3 py-2.5 text-sm text-black focus:border-black focus:outline-none focus:ring-1 focus:ring-black bg-neutral-50"
