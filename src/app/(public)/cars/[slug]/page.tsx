@@ -1,4 +1,4 @@
-import { createPublicClient } from "@/lib/supabase/public"; // Import client publik tanpa cookies
+import { createPublicClient } from "@/lib/supabase/public";
 import { notFound } from "next/navigation";
 import { unstable_cache } from "next/cache";
 import Link from "next/link";
@@ -33,41 +33,41 @@ function isUUID(str: string) {
   return uuidRegex.test(str);
 }
 
-// Caching layer dengan Public Supabase Client (Bebas Error Dynamic Data Source)
-const getCachedCar = (slugParam: string) =>
-  unstable_cache(
-    async () => {
-      const supabase = createPublicClient(); // Gunakan client publik di sini
-      let carData: Car | null = null;
+// FIX: Deklarasikan fungsi cache DI LUAR request scope agar Next.js bisa reuse cache instance di RAM Server
+const getCachedCar = unstable_cache(
+  async (slugParam: string): Promise<Car | null> => {
+    const supabase = createPublicClient();
+    let carData: Car | null = null;
 
-      const { data: dataBySlug } = await supabase
+    const { data: dataBySlug } = await supabase
+      .from("cars")
+      .select("*")
+      .eq("slug", slugParam)
+      .maybeSingle();
+
+    carData = dataBySlug as Car | null;
+
+    if (!carData && (isUUID(slugParam) || !isNaN(Number(slugParam)))) {
+      const { data: dataById } = await supabase
         .from("cars")
         .select("*")
-        .eq("slug", slugParam)
+        .eq("id", slugParam)
         .maybeSingle();
 
-      carData = dataBySlug as Car | null;
+      carData = dataById as Car | null;
+    }
 
-      if (!carData && (isUUID(slugParam) || !isNaN(Number(slugParam)))) {
-        const { data: dataById } = await supabase
-          .from("cars")
-          .select("*")
-          .eq("id", slugParam)
-          .maybeSingle();
-
-        carData = dataById as Car | null;
-      }
-
-      return carData;
-    },
-    [`car-detail-${slugParam}`],
-    { revalidate: 3600, tags: ["cars"] },
-  )();
+    return carData;
+  },
+  ["car-detail-cache-key"],
+  { revalidate: 3600, tags: ["cars"] },
+);
 
 export default async function CarDetailPage({ params }: CarDetailPageProps) {
   const resolvedParams = await params;
   const rawParam = decodeURIComponent(resolvedParams.slug);
 
+  // Dipanggil seperti fungsi biasa
   const car = await getCachedCar(rawParam);
 
   if (!car) {
