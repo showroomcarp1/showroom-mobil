@@ -17,15 +17,27 @@ const HeroVideo = memo(function HeroVideo({
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
 
-  // Jalankan play jika video sudah di-cache oleh browser
   useEffect(() => {
-    if (videoRef.current && videoRef.current.readyState >= 3) {
+    // 1. Cek apakah video sudah pernah di-cache dalam sesi ini
+    const isCached = sessionStorage.getItem("autohigh_hero_cached");
+    if (isCached === "true") {
       setIsVideoReady(true);
+    }
+
+    // 2. Play video otomatis
+    if (videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
   }, []);
 
-  // Reset video ke detik 0 jika mencapai detik 30
+  const handleVideoLoaded = () => {
+    setIsVideoReady(true);
+    sessionStorage.setItem("autohigh_hero_cached", "true");
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
   const handleTimeUpdate = () => {
     if (videoRef.current && videoRef.current.currentTime >= 30) {
       videoRef.current.currentTime = 0;
@@ -35,32 +47,30 @@ const HeroVideo = memo(function HeroVideo({
 
   return (
     <div className="relative w-full h-full bg-neutral-950 overflow-hidden select-none">
-      {/* 1. Instant Poster Layer (Next.js Image Priority - 0ms Black Screen) */}
+      {/* Poster Image (Instan 0ms) */}
       <Image
         src={poster}
-        alt="AutoHigh Hero Preview"
+        alt="Hero Background"
         fill
         priority
         quality={85}
         sizes="100vw"
-        className={`object-cover transform-gpu transition-opacity duration-1000 ease-out ${
+        className={`object-cover transform-gpu transition-opacity duration-700 ease-out ${
           isVideoReady ? "opacity-0" : "opacity-100"
         }`}
       />
 
-      {/* 2. Seamless Video Layer */}
+      {/* Video Element (Direct Cache & Stream) */}
       <video
         ref={videoRef}
         autoPlay
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
+        onLoadedData={handleVideoLoaded}
+        onCanPlay={handleVideoLoaded}
         onTimeUpdate={handleTimeUpdate}
-        onCanPlay={() => {
-          setIsVideoReady(true);
-          videoRef.current?.play().catch(() => {});
-        }}
-        className={`w-full h-full object-cover pointer-events-none transform-gpu will-change-transform translate-z-0 backface-hidden transition-opacity duration-1000 ease-out ${
+        className={`w-full h-full object-cover pointer-events-none transform-gpu will-change-transform translate-z-0 backface-hidden transition-opacity duration-700 ease-out ${
           isVideoReady ? "opacity-100" : "opacity-0"
         }`}
       >
@@ -68,7 +78,6 @@ const HeroVideo = memo(function HeroVideo({
         <source src={mp4Src} type="video/mp4" />
       </video>
 
-      {/* Overlay Gradient Halus ala Apple */}
       <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-neutral-950/30 pointer-events-none" />
     </div>
   );
