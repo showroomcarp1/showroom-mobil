@@ -130,7 +130,7 @@ export default function MobileStickyBar({
         <div className="grid grid-cols-4 items-center w-full h-16">
           {/* 1. Beranda */}
           <Link
-            href="/"
+            href="/cars"
             aria-label="Return to Home"
             className="flex flex-col items-center justify-center h-full gap-1 text-black active:bg-neutral-100 transition-colors border-r border-neutral-200"
           >
