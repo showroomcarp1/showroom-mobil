@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useTransition } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { CarCardSkeleton } from "@/components/sections/CarCard";
 
-// Brand disesuaikan persis dengan Mega Menu
 const BRAND_OPTIONS = [
   "Toyota",
   "BMW",
@@ -34,7 +33,7 @@ const TRANSMISSION_OPTIONS = [
   "Hybrid",
 ];
 
-// Opsi Max Price Diperbesar khusus Luxury Cars (hingga 100 Milyar IDR)
+// Opsi Max Price
 const PRICE_OPTIONS = [
   { label: "< IDR 1 Billion", value: "1000000000" },
   { label: "< IDR 2.5 Billion", value: "2500000000" },
@@ -93,10 +92,7 @@ interface CustomSelectProps {
   onChange: (val: string) => void;
 }
 
-/**
- * Custom Dropdown Component
- * Typography tegas berwarna Hitam (Neutral-900) dengan Segitiga Penuh Instan (Tanpa Rotate)
- */
+
 function CustomSelect({
   id,
   label,
@@ -163,13 +159,13 @@ function CustomSelect({
           {selectedOption ? selectedOption.label : placeholder}
         </span>
 
-        {/* Ikon Segitiga Penuh Langsung Berbalik (Tanpa Animasi Rotate) */}
+        {/* chevron dropdown */}
         <svg className="ml-2 h-3.5 w-3.5 fill-neutral-900" viewBox="0 0 24 24">
           {isOpen ? (
-            /* Segitiga Menghadap Ke Atas (Instan) */
+            /* dropdown arah atas */
             <path d="M12 8l8 8H4l8-8z" />
           ) : (
-            /* Segitiga Menghadap Ke Bawah (Instan) */
+            /* dropdrown arah bawah */
             <path d="M12 16L4 8h16l-8 8z" />
           )}
         </svg>

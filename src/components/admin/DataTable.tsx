@@ -64,7 +64,7 @@ export default function DataTable({ cars }: DataTableProps) {
         </Link>
       </header>
 
-      {/* Container Tabel dengan Overflow Scroll Bar Horizontal */}
+      {/* Container Tabel */}
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left text-xs font-bold uppercase tracking-wider text-neutral-900 border-collapse">
           <caption className="sr-only">

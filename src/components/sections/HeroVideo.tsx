@@ -19,7 +19,7 @@ const HeroVideo = memo(function HeroVideo({
   const handleTimeUpdate = () => {
     if (videoRef.current && videoRef.current.currentTime >= 30) {
       videoRef.current.currentTime = 0;
-      // pastikan video tetap berjalan secara seamless
+      // fungsi memastikan video tetap berjalan secara seamless
       videoRef.current.play().catch(() => {});
     }
   };

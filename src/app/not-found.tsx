@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <main className="flex min-h-[70vh] flex-col justify-center px-6 py-16">
       <div className="mx-auto w-full max-w-md space-y-6">
-        {/* Header Teks Singkat & Tipografi Minimalis */}
+        {/* Header  */}
         <div className="space-y-3">
           <p className="text-4xl font-extrabold tracking-tight text-neutral-900">
             404
@@ -20,7 +20,7 @@ export default function NotFound() {
           </p>
         </div>
 
-        {/* Tombol Sederhana Tanpa Shadow & Tanpa Panah */}
+        {/* Tombol */}
         <div className="flex flex-wrap items-center gap-3 pt-2">
           <Link
             href="/cars"

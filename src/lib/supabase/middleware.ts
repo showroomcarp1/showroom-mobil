@@ -10,14 +10,14 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // 1. Safety Guard: Jika Env Variables tidak terbaca, kembalikan response biasa
+  // Safety Guard: Jika Env Variables tidak terbaca, kembalikan response biasa
   // Mencegah crash Error 500 Vercel saat Edge Runtime
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error("Supabase Environment Variables missing in Middleware!");
     return supabaseResponse;
   }
 
-  // 2. Inisialisasi client dengan variabel yang dipastikan terdefinisi
+  // Inisialisasi client dengan variabel yang dipastikan terdefinisi
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {

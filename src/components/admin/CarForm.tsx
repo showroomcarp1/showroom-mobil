@@ -383,7 +383,7 @@ export default function CarForm({ initialData }: CarFormProps) {
         </div>
       )}
 
-      {/* --- SECTION 1: GALERI FOTO --- */}
+      {/* galeri foto --- */}
       <fieldset className="space-y-4">
         <legend className="text-base font-black uppercase tracking-tight text-neutral-950 border-b border-neutral-200 pb-2 w-full">
           Galeri Foto Kendaraan
@@ -408,7 +408,7 @@ export default function CarForm({ initialData }: CarFormProps) {
         )}
       </fieldset>
 
-      {/* --- SECTION 2: IDENTITAS UNIT --- */}
+      {/* --- identitas unit --- */}
       <fieldset className="space-y-4">
         <legend className="text-base font-black uppercase tracking-tight text-neutral-950 border-b border-neutral-200 pb-2 w-full">
           Identitas Unit Mobil
@@ -444,7 +444,7 @@ export default function CarForm({ initialData }: CarFormProps) {
             <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-1.5">
               Merek / Brand *
             </label>
-            {/* DROPDOWN SELECT BRAND */}
+            {/* dropdown select brands */}
             <select
               name="brand"
               defaultValue={initialData?.brand || BRANDS[0]}
@@ -485,7 +485,7 @@ export default function CarForm({ initialData }: CarFormProps) {
         </div>
       </fieldset>
 
-      {/* --- SECTION 3: SPESIFIKASI TEKNIS --- */}
+      {/* --- spesifikasi --- */}
       <fieldset className="space-y-4">
         <legend className="text-base font-black uppercase tracking-tight text-neutral-950 border-b border-neutral-200 pb-2 w-full">
           Spesifikasi Teknis
@@ -567,7 +567,7 @@ export default function CarForm({ initialData }: CarFormProps) {
         </div>
       </fieldset>
 
-      {/* --- SECTION 4: HARGA & DISKON --- */}
+      {/* harga & diskon */}
       <fieldset className="space-y-4">
         <legend className="text-base font-black uppercase tracking-tight text-neutral-950 border-b border-neutral-200 pb-2 w-full">
           Harga & Skema Diskon

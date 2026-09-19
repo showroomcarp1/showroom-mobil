@@ -15,7 +15,7 @@ export default function DesktopFloatingBar({
   whatsappTestDriveMsg,
 }: DesktopFloatingBarProps) {
   return (
-    // container utama nempel kanan tanpa border luar
+    // container utama
     <aside
       aria-label="Aksi Kontak Desktop Floating"
       className="hidden lg:flex fixed right-0 top-1/2 -translate-y-1/2 z-50 flex-col bg-[#008000] backdrop-blur-md"

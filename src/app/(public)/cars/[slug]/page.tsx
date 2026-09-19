@@ -53,7 +53,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
     notFound();
   }
 
-  // Logika kalkulasi diskon aman & konsisten dengan komponen Card
+  // Logika kalkulasi diskon dengan komponen Card
   const rawPrice = car.price || 0;
   const rawDiscount = car.discount_price || 0;
 
@@ -133,7 +133,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
         </div>
       </nav>
 
-      {/* Detail container */}
+      {/* Detail page container */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
         <CarDetailContent car={car}>
           {/* Header & info panel */}
@@ -164,7 +164,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
               </div>
             </header>
 
-            {/* Spesifikasi utama berbaris (list style) */}
+            {/* Spesifikasi utama */}
             <section aria-label="Spesifikasi Utama">
               <dl className="divide-y divide-neutral-100 border-y border-neutral-100">
                 {/* Brand */}

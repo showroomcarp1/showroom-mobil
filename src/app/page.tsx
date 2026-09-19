@@ -16,7 +16,7 @@ export default function HeroClient() {
   const handleNavigate = (path: string = "/cars") => {
     if (isNavigating) return;
 
-    // Hitung posisi pasti tombol terhadap container agar zoom presisi 100%
+    // Hitung posisi pasti tombol terhadap container
     if (buttonRef.current && containerRef.current) {
       const btnRect = buttonRef.current.getBoundingClientRect();
       const containerRect = containerRef.current.getBoundingClientRect();
@@ -49,14 +49,12 @@ export default function HeroClient() {
       className="relative h-screen w-full overflow-hidden bg-neutral-950 flex items-center justify-center"
     >
       {/* 
-        Container Kamera Sinematik: 
-        Menerima transform-origin dinamis dari posisi tombol
-      */}
+        Container zoom tombol */}
       <motion.div
         animate={
           isNavigating
             ? {
-                scale: 12, // Zoom ekstra besar hingga tombol menyelimuti seluruh layar
+                scale: 12, // Zoom 
                 opacity: [1, 1, 0],
                 filter: "blur(10px) brightness(1.2)",
               }
@@ -73,7 +71,7 @@ export default function HeroClient() {
         style={{ transformOrigin: zoomOrigin }}
         className="relative w-full h-full flex items-center justify-center"
       >
-        {/* Latar Belakang HD */}
+        {/* Latar Belakang */}
         <div className="absolute inset-0 z-0 opacity-70">
           <Image
             src="/images/hero.jpg"
@@ -139,7 +137,7 @@ export default function HeroClient() {
 
           {/* Navigasi Aksi / Call To Action */}
           <nav className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-5 w-full sm:w-auto">
-            {/* Tombol Utama (Target Zoom) */}
+            {/* Tombol Utama */}
             <motion.button
               ref={buttonRef}
               type="button"
@@ -157,7 +155,7 @@ export default function HeroClient() {
               className="relative overflow-hidden w-full sm:w-auto px-10 py-4 border border-white bg-transparent text-white font-extrabold text-base uppercase tracking-widest transition-all duration-700 ease-in hover:bg-white hover:text-black active:scale-[0.98] shadow-2xl cursor-pointer"
             >
               <span className="relative z-10">Get your dream car</span>
-              {/* Overlay pemutih cepat saat zoom berakselerasi */}
+              {/* Overlay */}
               {isNavigating && (
                 <motion.span
                   initial={{ opacity: 0 }}
@@ -187,7 +185,7 @@ export default function HeroClient() {
         </main>
       </motion.div>
 
-      {/* Layer Fade-out Hitam Halus untuk Transisi Halaman Seamless */}
+      {/* Layer Fade-out */}
       <AnimatePresence>
         {isNavigating && (
           <motion.div
