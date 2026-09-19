@@ -154,7 +154,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
             type="button"
             onClick={() => setIsLightboxOpen(false)}
             aria-label="Tutup tampilan gambar"
-            className="absolute top-4 right-4 z-50 cursor-pointer p-2 text-3xl font-light text-white/80 transition-colors hover:text-white focus:outline-none sm:top-6 sm:right-6"
+            className="absolute top-4 right-4 z-50 cursor-pointer p-2 text-3xl font-light text-white focus:outline-none sm:top-6 sm:right-6"
           >
             ✕
           </button>
