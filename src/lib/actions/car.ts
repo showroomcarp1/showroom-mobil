@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createPublicClient } from "@supabase/supabase-js";
-import { revalidatePath, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import type {
   ConditionType,
   TransmissionType,
@@ -78,7 +78,12 @@ export async function createCar(data: CreateCarInput): Promise<void> {
     throw new Error(`Gagal menyimpan data unit: ${error.message}`);
   }
 
+  // 1. Bersihkan Data Cache di RAM Server (Sesuai Next.js 15+)
+  revalidateTag("cars", "page");
+
+  // 2. Bersihkan Cache Halaman HTML
   revalidatePath("/admin/cars");
+  revalidatePath("/cars");
   revalidatePath("/");
 }
 
@@ -122,8 +127,14 @@ export async function updateCar(
     throw new Error(`Gagal memperbarui data unit: ${error.message}`);
   }
 
+  // 1. Bersihkan Data Cache RAM
+  revalidateTag("cars", "page");
+
+  // 2. Bersihkan Cache Halaman HTML yang Terdampak
   revalidatePath("/admin/cars");
+  revalidatePath("/cars");
   revalidatePath(`/cars/${data.slug || id}`);
+  revalidatePath("/cars/[slug]", "page");
   revalidatePath("/");
 }
 
@@ -136,11 +147,16 @@ export async function deleteCar(id: string): Promise<void> {
     throw new Error(`Gagal menghapus unit: ${error.message}`);
   }
 
+  // 1. Bersihkan Data Cache RAM
+  revalidateTag("cars", "page");
+
+  // 2. Bersihkan Cache Halaman HTML
   revalidatePath("/admin/cars");
+  revalidatePath("/cars");
   revalidatePath("/");
 }
 
-// OPTIMASI: Jalankan increment tanpa membatalkan cache halaman utama (revalidatePath dihapus)
+// OPTIMASI: Jalankan increment tanpa membatalkan cache halaman utama
 export async function incrementCarViews(carId: string): Promise<void> {
   const supabase = getAnonSupabase();
 
