@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  animate,
+} from "framer-motion";
 import Image from "next/image";
 import ImageGallery from "@/components/common/ImageGallery";
 import CarImageGrid from "@/components/common/CarImageGrid";
@@ -12,7 +17,6 @@ interface CarDetailContentProps {
   children?: React.ReactNode;
 }
 
-// Carousel slider versi optimal (Ringan & Responsive)
 function OverviewGalleryCarousel({
   images,
   altText,
@@ -20,10 +24,67 @@ function OverviewGalleryCarousel({
   images: string[];
   altText: string;
 }) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
+  // pointer tracker untuk bedakan drag vs click
+  const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const isDragging = useRef(false);
+
+  // duplikasi array gambar untuk infinite loop
+  const extendedImages =
+    images.length > 1 ? [...images, ...images, ...images] : images;
+  const originalLength = images.length;
+
+  const x = useMotionValue(0);
+  const itemWidth = 300 + 16; // ukuran gambar lebih besar: width 300px + gap 16px
+
+  // auto scroll
   useEffect(() => {
-    if (selectedImage) {
+    if (originalLength <= 1 || isPaused || selectedIndex !== null) return;
+
+    const triggerNext = () => {
+      setCurrentIndex((prevIndex) => {
+        const nextIndex = prevIndex + 1;
+        const targetX = -nextIndex * itemWidth;
+
+        animate(x, targetX, {
+          duration: 3.2,
+          ease: [0.25, 1, 0.5, 1],
+          onComplete: () => {
+            if (nextIndex >= originalLength) {
+              const resetIndex = nextIndex % originalLength;
+              x.set(-resetIndex * itemWidth);
+              setCurrentIndex(resetIndex);
+            }
+          },
+        });
+
+        return nextIndex >= originalLength
+          ? nextIndex % originalLength
+          : nextIndex;
+      });
+    };
+
+    // langsung gerak saat mount
+    const initialTimer = setTimeout(() => {
+      triggerNext();
+    }, 50);
+
+    const interval = setInterval(() => {
+      triggerNext();
+    }, 5500);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+    };
+  }, [originalLength, isPaused, selectedIndex, itemWidth, x]);
+
+  // disable body scroll
+  useEffect(() => {
+    if (selectedIndex !== null) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -31,7 +92,63 @@ function OverviewGalleryCarousel({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [selectedImage]);
+  }, [selectedIndex]);
+
+  // keyboard nav
+  useEffect(() => {
+    if (selectedIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        setSelectedIndex((prev) =>
+          prev !== null ? (prev + 1) % originalLength : 0,
+        );
+      } else if (e.key === "ArrowLeft") {
+        setSelectedIndex((prev) =>
+          prev !== null ? (prev - 1 + originalLength) % originalLength : 0,
+        );
+      } else if (e.key === "Escape") {
+        setSelectedIndex(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIndex, originalLength]);
+
+  // dot click handler
+  const handleDotClick = (index: number) => {
+    setCurrentIndex(index);
+    animate(x, -index * itemWidth, {
+      duration: 2.0,
+      ease: [0.25, 1, 0.5, 1],
+    });
+  };
+
+  // mousedown/touchstart handler
+  const handlePointerDown = (e: React.PointerEvent) => {
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
+    isDragging.current = false;
+    setIsPaused(true);
+  };
+
+  // mousemove/touchmove handler
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const deltaX = Math.abs(e.clientX - dragStartPos.current.x);
+    const deltaY = Math.abs(e.clientY - dragStartPos.current.y);
+
+    // jika geser lebih dari 5px dianggap drag bukan click
+    if (deltaX > 5 || deltaY > 5) {
+      isDragging.current = true;
+    }
+  };
+
+  // image click handler (hanya buka modal jika tidak drag)
+  const handleImageClick = (realIndex: number) => {
+    if (!isDragging.current) {
+      setSelectedIndex(realIndex);
+    }
+  };
 
   if (!images || images.length === 0) {
     return (
@@ -41,63 +158,183 @@ function OverviewGalleryCarousel({
     );
   }
 
+  const selectedImage = selectedIndex !== null ? images[selectedIndex] : null;
+
   return (
-    <div className="space-y-4">
-      {/* Slider Container Menggunakan Native Scrollbar Murni */}
-      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-none py-1">
-        {images.map((img, idx) => (
-          <div
-            key={idx}
-            onClick={() => setSelectedImage(img)}
-            className="snap-start relative aspect-[4/3] w-[70vw] sm:w-[40vw] md:w-[30vw] lg:w-[220px] flex-shrink-0 overflow-hidden bg-neutral-100 cursor-pointer transition-opacity duration-200 hover:opacity-90 active:scale-[0.98]"
-          >
-            <Image
-              src={img}
-              alt={`${altText} - ${idx + 1}`}
-              fill
-              quality={65}
-              sizes="(max-width: 640px) 70vw, (max-width: 1024px) 40vw, 220px"
-              className="object-cover pointer-events-none"
-            />
-          </div>
-        ))}
+    <section aria-label={`Karusel galeri ${altText}`} className="space-y-4">
+      {/* carousel container */}
+      <div
+        className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none py-1"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <motion.div
+          style={{ x }}
+          drag="x"
+          dragConstraints={{
+            left: -(extendedImages.length - originalLength) * itemWidth,
+            right: 0,
+          }}
+          dragElastic={0.03}
+          dragTransition={{
+            bounceStiffness: 100,
+            bounceDamping: 30,
+            power: 0.05,
+          }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={() => setIsPaused(false)}
+          className="flex gap-4"
+        >
+          {extendedImages.map((img, idx) => {
+            const realIndex = idx % originalLength;
+            return (
+              <div
+                key={idx}
+                onClick={() => handleImageClick(realIndex)}
+                className="relative aspect-[4/3] w-[85vw] sm:w-[45vw] md:w-[35vw] lg:w-[300px] flex-shrink-0 overflow-hidden bg-neutral-100 cursor-pointer transition-transform duration-300 active:scale-[0.98]"
+              >
+                <Image
+                  src={img}
+                  alt={`${altText} - foto ke-${realIndex + 1}`}
+                  fill
+                  quality={75}
+                  sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 300px"
+                  className="object-cover pointer-events-none"
+                />
+              </div>
+            );
+          })}
+        </motion.div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* dots indicator */}
+      {originalLength > 1 && (
+        <nav
+          aria-label="Navigasi slide foto"
+          className="flex items-center justify-center gap-2 pt-1"
+        >
+          {images.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleDotClick(idx)}
+              aria-label={`Buka slide foto ${idx + 1}`}
+              className={`h-2.5 w-2.5 rounded-full transition-all duration-300 focus:outline-none ${
+                currentIndex % originalLength === idx
+                  ? "bg-neutral-900 scale-110"
+                  : "bg-neutral-300"
+              }`}
+            />
+          ))}
+        </nav>
+      )}
+
+      {/* modal lightbox */}
       <AnimatePresence>
-        {selectedImage && (
+        {selectedImage && selectedIndex !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            onClick={() => setSelectedImage(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 cursor-zoom-out"
+            onClick={() => setSelectedIndex(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Tampilan foto ${altText}`}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xs p-4 cursor-zoom-out"
           >
+            {/* button close */}
             <button
               type="button"
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-5 right-5 text-white text-3xl font-light cursor-pointer z-50 leading-none"
+              onClick={() => setSelectedIndex(null)}
+              aria-label="Tutup gambar"
+              className="absolute top-5 right-5 text-white text-3xl font-light cursor-pointer z-50 leading-none p-2 focus:outline-none"
             >
               ✕
             </button>
 
+            {/* modal container */}
             <div
               className="relative w-full h-full max-w-6xl max-h-[85vh] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              <Image
-                src={selectedImage}
-                alt={altText}
-                fill
-                quality={85}
-                className="object-contain select-none"
-              />
+              {/* button prev */}
+              {originalLength > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedIndex((prev) =>
+                      prev !== null
+                        ? (prev - 1 + originalLength) % originalLength
+                        : 0,
+                    );
+                  }}
+                  aria-label="Foto sebelumnya"
+                  className="absolute left-1 md:-left-10 z-50 text-white cursor-pointer p-1 focus:outline-none"
+                >
+                  <svg
+                    className="w-8 h-12 md:w-10 md:h-16 drop-shadow-sm"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="square"
+                      strokeLinejoin="miter"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+              )}
+
+              {/* image preview */}
+              <figure className="relative w-full h-full flex items-center justify-center">
+                <Image
+                  src={selectedImage}
+                  alt={`${altText} - foto ke-${selectedIndex + 1}`}
+                  fill
+                  quality={85}
+                  className="object-contain select-none"
+                  priority
+                />
+              </figure>
+
+              {/* button next */}
+              {originalLength > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedIndex((prev) =>
+                      prev !== null ? (prev + 1) % originalLength : 0,
+                    );
+                  }}
+                  aria-label="Foto selanjutnya"
+                  className="absolute right-1 md:-right-10 z-50 text-white cursor-pointer p-1 focus:outline-none"
+                >
+                  <svg
+                    className="w-8 h-12 md:w-10 md:h-16 drop-shadow-sm"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="square"
+                      strokeLinejoin="miter"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </section>
   );
 }
 
@@ -133,7 +370,7 @@ export default function CarDetailContent({
 
   return (
     <div className="space-y-12">
-      {/* Top section */}
+      {/* main section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         <section className="lg:col-span-7">
           <ImageGallery images={overviewImages} altText={carTitle} />
@@ -142,7 +379,7 @@ export default function CarDetailContent({
         <section className="lg:col-span-5">{children}</section>
       </div>
 
-      {/* Bottom section */}
+      {/* tab section */}
       <div className="space-y-8 border-t border-neutral-100 pt-6">
         <nav className="sticky top-0 z-20 bg-white/90 backdrop-blur-md py-3 border-b border-neutral-100">
           <ul className="flex items-center gap-8 overflow-x-auto whitespace-nowrap scrollbar-none touch-pan-x px-1">
@@ -174,6 +411,7 @@ export default function CarDetailContent({
           </ul>
         </nav>
 
+        {/* tab content */}
         <div className="space-y-12 pt-2">
           {activeTab === "overview" && (
             <>

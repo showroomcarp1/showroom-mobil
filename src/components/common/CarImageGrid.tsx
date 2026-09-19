@@ -9,27 +9,58 @@ interface CarImageGridProps {
 }
 
 export default function CarImageGrid({ images, altText }: CarImageGridProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (selectedImage) {
+    if (selectedIndex !== null) {
       const scrollbarWidth =
         window.innerWidth - document.documentElement.clientWidth;
       document.documentElement.style.setProperty(
         "--scrollbar-width",
-        `${scrollbarWidth}px`
+        `${scrollbarWidth}px`,
       );
-      document.documentElement.classList.add("overflow-hidden", "pr-[var(--scrollbar-width)]");
+      document.documentElement.classList.add(
+        "overflow-hidden",
+        "pr-[var(--scrollbar-width)]",
+      );
     } else {
-      document.documentElement.classList.remove("overflow-hidden", "pr-[var(--scrollbar-width)]");
+      document.documentElement.classList.remove(
+        "overflow-hidden",
+        "pr-[var(--scrollbar-width)]",
+      );
       document.documentElement.style.removeProperty("--scrollbar-width");
     }
 
     return () => {
-      document.documentElement.classList.remove("overflow-hidden", "pr-[var(--scrollbar-width)]");
+      document.documentElement.classList.remove(
+        "overflow-hidden",
+        "pr-[var(--scrollbar-width)]",
+      );
       document.documentElement.style.removeProperty("--scrollbar-width");
     };
-  }, [selectedImage]);
+  }, [selectedIndex]);
+
+  // Kontrol panah keyboard & ESC
+  useEffect(() => {
+    if (selectedIndex === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") {
+        setSelectedIndex((prev) =>
+          prev !== null ? (prev + 1) % images.length : 0,
+        );
+      } else if (e.key === "ArrowLeft") {
+        setSelectedIndex((prev) =>
+          prev !== null ? (prev - 1 + images.length) % images.length : 0,
+        );
+      } else if (e.key === "Escape") {
+        setSelectedIndex(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIndex, images.length]);
 
   if (!images || images.length === 0) {
     return (
@@ -39,14 +70,17 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
     );
   }
 
+  const selectedImage = selectedIndex !== null ? images[selectedIndex] : null;
+
   return (
     <section aria-label={`Galeri foto ${altText}`} className="space-y-4">
+      {/* Grid Gambar */}
       <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
         {images.map((img, idx) => (
           <li key={idx}>
             <button
               type="button"
-              onClick={() => setSelectedImage(img)}
+              onClick={() => setSelectedIndex(idx)}
               aria-label={`Buka foto ${idx + 1} dari ${altText}`}
               className="group relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 cursor-pointer active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-neutral-900"
             >
@@ -64,35 +98,102 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
         ))}
       </ul>
 
-      {selectedImage && (
+      {/* Lightbox / Modal */}
+      {selectedImage && selectedIndex !== null && (
         <div
           role="dialog"
           aria-modal="true"
-          onClick={() => setSelectedImage(null)}
+          aria-label={`Tampilan foto ${altText}`}
+          onClick={() => setSelectedIndex(null)}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xs p-4 md:p-10 cursor-zoom-out animate-in fade-in duration-150"
         >
+          {/* Tombol Tutup */}
           <button
             type="button"
-            onClick={() => setSelectedImage(null)}
+            onClick={() => setSelectedIndex(null)}
             aria-label="Tutup tampilan gambar"
-            className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl font-light cursor-pointer z-50 p-2 leading-none focus:outline-none"
+            className="absolute top-4 right-4 text-white text-3xl font-light cursor-pointer z-50 p-2 leading-none focus:outline-none"
           >
             ✕
           </button>
 
-          <figure
-            className="relative w-full h-full max-w-7xl max-h-[85vh] flex items-center justify-center overflow-hidden"
+          {/* Container Foto & Chevron Samping */}
+          <div
+            className="relative w-full h-full max-w-7xl max-h-[85vh] flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
-              src={selectedImage}
-              alt={altText}
-              fill
-              sizes="100vw"
-              priority
-              className="object-contain select-none"
-            />
-          </figure>
+            {/* Chevron Kiri Putih Tebal */}
+            {images.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedIndex((prev) =>
+                    prev !== null
+                      ? (prev - 1 + images.length) % images.length
+                      : 0,
+                  );
+                }}
+                aria-label="Foto sebelumnya"
+                className="absolute left-1 md:-left-10 z-50 text-white cursor-pointer p-1 focus:outline-none"
+              >
+                <svg
+                  className="w-8 h-12 md:w-10 md:h-16 drop-shadow-sm"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+            )}
+
+            {/* Gambar Penuh */}
+            <figure className="relative w-full h-full flex items-center justify-center">
+              <Image
+                src={selectedImage}
+                alt={`${altText} foto ke-${selectedIndex + 1}`}
+                fill
+                sizes="100vw"
+                priority
+                className="object-contain select-none"
+              />
+            </figure>
+
+            {/* Chevron Kanan Putih Tebal */}
+            {images.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedIndex((prev) =>
+                    prev !== null ? (prev + 1) % images.length : 0,
+                  );
+                }}
+                aria-label="Foto selanjutnya"
+                className="absolute right-1 md:-right-10 z-50 text-white cursor-pointer p-1 focus:outline-none"
+              >
+                <svg
+                  className="w-8 h-12 md:w-10 md:h-16 drop-shadow-sm"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       )}
     </section>
