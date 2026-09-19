@@ -1,69 +1,87 @@
 "use client";
 
-import { memo, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface HeroVideoProps {
   poster: string;
-  webmSrc: string;
-  mp4Src: string;
+  videoUrl: string;
 }
 
-const HeroVideo = memo(function HeroVideo({
-  poster,
-  webmSrc,
-  mp4Src,
-}: HeroVideoProps) {
+const STORAGE_KEY = "hero_video_time";
+
+export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Lazy Playback via IntersectionObserver:
-  // Video HANYA akan diputar ketika elemen masuk ke dalam layar (viewport).
-  // Mencegah CPU/GPU bekerja keras saat user berada di area lain.
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    // Tunda pemuatan video sebentar agar render halaman awal instan
+    const timer = setTimeout(() => {
+      setShouldLoadVideo(true);
+    }, 400);
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          video.play().catch(() => {});
-        } else {
-          video.pause();
-        }
-      },
-      { threshold: 0.15 },
-    );
-
-    observer.observe(video);
-
-    return () => {
-      observer.disconnect();
-    };
+    return () => clearTimeout(timer);
   }, []);
 
+  // Setel detik video ke posisi terakhir yang tersimpan saat video siap
+  const handleLoadedData = () => {
+    setIsVideoLoaded(true);
+
+    if (videoRef.current) {
+      const savedTime = sessionStorage.getItem(STORAGE_KEY);
+      if (savedTime) {
+        const time = parseFloat(savedTime);
+        if (!isNaN(time) && time < 30) {
+          videoRef.current.currentTime = time;
+        }
+      }
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
   const handleTimeUpdate = () => {
-    if (videoRef.current && videoRef.current.currentTime >= 30) {
+    if (!videoRef.current) return;
+
+    const currentTime = videoRef.current.currentTime;
+
+    // Simpan posisi waktu terkini ke sessionStorage
+    sessionStorage.setItem(STORAGE_KEY, currentTime.toString());
+
+    // Fitur loop maks 30 detik
+    if (currentTime >= 30) {
       videoRef.current.currentTime = 0;
+      sessionStorage.setItem(STORAGE_KEY, "0");
       videoRef.current.play().catch(() => {});
     }
   };
 
   return (
-    <video
-      ref={videoRef}
-      muted
-      playsInline
-      // UBAH "auto" KE "metadata": Mencegah download file video raksasa sekaligus saat awal loading halaman
-      preload="metadata"
-      poster={poster}
-      onTimeUpdate={handleTimeUpdate}
-      // CSS Optimization: Menghapus utility class GPU berlebihan yang bisa memicu memory leak di mobile browser
-      className="w-full h-full object-cover pointer-events-none transform-gpu"
-    >
-      <source src={webmSrc} type="video/webm" />
-      <source src={mp4Src} type="video/mp4" />
-      Browser Anda tidak mendukung pemutaran video.
-    </video>
-  );
-});
+    <div className="relative w-full h-full bg-neutral-950 overflow-hidden">
+      {/* Poster Gambar */}
+      <img
+        src={poster}
+        alt="Hero Banner"
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+          isVideoLoaded ? "opacity-0" : "opacity-100"
+        }`}
+      />
 
-export default HeroVideo;
+      {/* Element Video */}
+      {shouldLoadVideo && (
+        <video
+          ref={videoRef}
+          muted
+          playsInline
+          preload="metadata"
+          onLoadedData={handleLoadedData}
+          onTimeUpdate={handleTimeUpdate}
+          className={`w-full h-full object-cover pointer-events-none transition-opacity duration-500 ${
+            isVideoLoaded ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <source src={videoUrl} type="video/mp4" />
+        </video>
+      )}
+    </div>
+  );
+}

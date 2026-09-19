@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import InventoryFilter from "@/components/sections/InventoryFilter";
 import CarCard from "@/components/sections/CarCard";
-import HeroVideo from "@/components/sections/DynamicHeroVideo"; // Import dari wrapper baru
+import HeroVideo from "@/components/sections/HeroVideo";
 import type {
   Car,
   ConditionType,
@@ -81,8 +81,7 @@ export default async function CarsListingPage({
       <section className="relative w-full h-[80vh] min-h-[550px] max-h-[800px] bg-neutral-950 overflow-hidden">
         <HeroVideo
           poster="/images/hero-video-poster.jpg"
-          webmSrc="/video/video.webm"
-          mp4Src="/video/video.mp4"
+          videoUrl="https://oaznjzwrcyjclrxjplqp.supabase.co/storage/v1/object/public/car-videos/video.mp4"
         />
       </section>
 
