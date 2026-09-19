@@ -8,26 +8,36 @@ interface HeroVideoProps {
 }
 
 const STORAGE_KEY = "hero_video_time";
+const PLAYING_KEY = "hero_video_was_playing";
 
 export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
-  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  // 1. Cek cache secara sinkron saat komponen pertama kali dirender
+  const [hasCache] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !!sessionStorage.getItem(STORAGE_KEY);
+  });
+
+  // Jika sudah ada cache navigasi sebelumnya, langsung load video tanpa delay 300ms
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(hasCache);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Tunda penambahan tag video ke DOM agar render halaman awal instan
-    const timer = setTimeout(() => {
-      setShouldLoadVideo(true);
-    }, 300);
+    if (!shouldLoadVideo) {
+      // Hanya beri delay kecil jika ini benar-based "First Visit" aplikasi
+      const timer = setTimeout(() => {
+        setShouldLoadVideo(true);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldLoadVideo]);
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  // KUNCI PERBAIKAN: Setel waktu HANYA SETELAH metadata video selesai dimuat oleh browser
+  // Handler saat metadata video siap
   const handleLoadedMetadata = () => {
     const video = videoRef.current;
     if (!video) return;
 
+    // Restore detik video dari cache sessionStorage
     const savedTime = sessionStorage.getItem(STORAGE_KEY);
     if (savedTime) {
       const time = parseFloat(savedTime);
@@ -48,7 +58,7 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
     if (!videoRef.current) return;
 
     const currentTime = videoRef.current.currentTime;
-    // Simpan posisi waktu secara presisi
+    // Simpan detik video ke cache
     sessionStorage.setItem(STORAGE_KEY, currentTime.toString());
 
     // Loop maksimal 30 detik
@@ -61,16 +71,16 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
 
   return (
     <div className="relative w-full h-full bg-neutral-950 overflow-hidden">
-      {/* 1. Poster Image: z-10 memastikan tidak ada kerdipan hitam sebelum video berputar */}
+      {/* 1. Poster Image (Instan tampil 0ms sebagai penutup layar hitam) */}
       <img
         src={poster}
         alt="Hero Banner"
-        className={`absolute inset-0 z-10 w-full h-full object-cover transition-opacity duration-500 ease-out ${
+        className={`absolute inset-0 z-10 w-full h-full object-cover transition-opacity duration-300 ease-out ${
           isVideoPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       />
 
-      {/* 2. Video Element */}
+      {/* 2. Video Element dengan Instant Fallback Poster */}
       {shouldLoadVideo && (
         <video
           ref={videoRef}
@@ -80,7 +90,7 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
           playsInline
           poster={poster}
           webkit-playsinline="true"
-          preload="metadata"
+          preload="auto"
           onLoadedMetadata={handleLoadedMetadata}
           onPlaying={() => setIsVideoPlaying(true)}
           onTimeUpdate={handleTimeUpdate}
