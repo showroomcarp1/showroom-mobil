@@ -15,39 +15,51 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Tunda pemuatan video sebentar agar render halaman awal instan
+    // Tunda render tag video sebentar agar loading awal instan
     const timer = setTimeout(() => {
       setShouldLoadVideo(true);
-    }, 400);
+    }, 300);
 
     return () => clearTimeout(timer);
   }, []);
 
-  // Setel detik video ke posisi terakhir yang tersimpan saat video siap
-  const handleLoadedData = () => {
-    setIsVideoLoaded(true);
+  useEffect(() => {
+    if (!shouldLoadVideo) return;
 
-    if (videoRef.current) {
-      const savedTime = sessionStorage.getItem(STORAGE_KEY);
-      if (savedTime) {
-        const time = parseFloat(savedTime);
-        if (!isNaN(time) && time < 30) {
-          videoRef.current.currentTime = time;
-        }
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Setel posisi detik terakhir yang tersimpan dari sessionStorage
+    const savedTime = sessionStorage.getItem(STORAGE_KEY);
+    if (savedTime) {
+      const time = parseFloat(savedTime);
+      if (!isNaN(time) && time < 30) {
+        video.currentTime = time;
       }
-      videoRef.current.play().catch(() => {});
     }
-  };
+
+    // Paksa browser mobile untuk autoplay secara aman
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsVideoLoaded(true);
+        })
+        .catch(() => {
+          // Jika mobile menolak autoplay (misal: Low Power Mode),
+          // fallback tetap tampilkan poster agar tidak blank.
+          console.warn("Autoplay ditolak oleh browser mobile.");
+        });
+    }
+  }, [shouldLoadVideo]);
 
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;
 
     const currentTime = videoRef.current.currentTime;
-
-    // Simpan posisi waktu terkini ke sessionStorage
     sessionStorage.setItem(STORAGE_KEY, currentTime.toString());
 
-    // Fitur loop maks 30 detik
+    // Loop maks 30 detik
     if (currentTime >= 30) {
       videoRef.current.currentTime = 0;
       sessionStorage.setItem(STORAGE_KEY, "0");
@@ -57,25 +69,29 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
 
   return (
     <div className="relative w-full h-full bg-neutral-950 overflow-hidden">
-      {/* Poster Gambar */}
+      {/* 1. Poster Image (Selalu tampil di mobile sebagai fallback/background) */}
       <img
         src={poster}
         alt="Hero Banner"
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
           isVideoLoaded ? "opacity-0" : "opacity-100"
         }`}
       />
 
-      {/* Element Video */}
+      {/* 2. Video Element dengan Atribut Wajib Mobile */}
       {shouldLoadVideo && (
         <video
           ref={videoRef}
+          autoPlay
+          loop
           muted
           playsInline
+          // Atribut khusus Safari iOS & Chrome Mobile
+          webkit-playsinline="true"
           preload="metadata"
-          onLoadedData={handleLoadedData}
+          onLoadedData={() => setIsVideoLoaded(true)}
           onTimeUpdate={handleTimeUpdate}
-          className={`w-full h-full object-cover pointer-events-none transition-opacity duration-500 ${
+          className={`w-full h-full object-cover pointer-events-none transition-opacity duration-700 ${
             isVideoLoaded ? "opacity-100" : "opacity-0"
           }`}
         >
