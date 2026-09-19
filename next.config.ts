@@ -9,30 +9,6 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   turbopack: {},
 
-  // HTTP Cache Headers untuk media lokal agar tersimpan di browser cache
-  async headers() {
-    return [
-      {
-        source: "/video/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=3600, must-revalidate",
-          },
-        ],
-      },
-      {
-        source: "/images/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=3600, must-revalidate",
-          },
-        ],
-      },
-    ];
-  },
-
   images: {
     remotePatterns: [
       {
