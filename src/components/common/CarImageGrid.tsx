@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,6 +11,14 @@ interface CarImageGridProps {
 
 export default function CarImageGrid({ images, altText }: CarImageGridProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // Helper fungsi prefetch gambar ke browser cache
+  const prefetchImage = useCallback((src: string) => {
+    if (typeof window !== "undefined" && src) {
+      const img = new window.Image();
+      img.src = src;
+    }
+  }, []);
 
   // Lock scroll background saat modal dibuka
   useEffect(() => {
@@ -34,13 +42,18 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
 
   return (
     <div className="space-y-4">
-      {/* Grid Foto */}
+      {/* Grid Foto Semantik */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
         {images.map((img, idx) => (
-          <div
+          <button
             key={idx}
+            type="button"
             onClick={() => setSelectedImage(img)}
-            className="group relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 cursor-pointer transition-all"
+            onMouseEnter={() => prefetchImage(img)}
+            onFocus={() => prefetchImage(img)}
+            onTouchStart={() => prefetchImage(img)}
+            aria-label={`Buka foto ${altText} ${idx + 1}`}
+            className="group relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 cursor-pointer transition-all text-left focus:outline-none focus:ring-2 focus:ring-neutral-400"
           >
             <Image
               src={img}
@@ -49,7 +62,7 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
               sizes="(max-width: 768px) 50vw, 25vw"
               className="object-cover object-center"
             />
-          </div>
+          </button>
         ))}
       </div>
 
@@ -57,6 +70,9 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
       <AnimatePresence>
         {selectedImage && (
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Tampilan Gambar Penuh"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -67,13 +83,14 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
             <button
               type="button"
               onClick={() => setSelectedImage(null)}
-              className="absolute top-5 right-5 md:top-8 md:right-8 text-white text-3xl md:text-4xl font-light cursor-pointer z-50 leading-none select-none"
+              aria-label="Tutup tampilan gambar"
+              className="absolute top-5 right-5 md:top-8 md:right-8 text-white text-3xl md:text-4xl font-light cursor-pointer z-50 leading-none select-none focus:outline-none"
             >
               ✕
             </button>
 
             {/* Container Gambar */}
-            <div
+            <figure
               className="relative w-full h-full max-w-7xl max-h-[85vh] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
@@ -81,9 +98,10 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
                 src={selectedImage}
                 alt={altText}
                 fill
+                sizes="100vw"
                 className="object-contain select-none"
               />
-            </div>
+            </figure>
           </motion.div>
         )}
       </AnimatePresence>

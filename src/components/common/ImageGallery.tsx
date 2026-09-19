@@ -30,18 +30,32 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
     setSelectedIndex(0);
   }
 
+  // Helper prefetch gambar ke browser cache
+  const prefetchImage = useCallback((src: string) => {
+    if (typeof window !== "undefined" && src) {
+      const img = new window.Image();
+      img.src = src;
+    }
+  }, []);
+
   // Handle navigasi Lightbox (Next / Prev / ESC)
   const handlePrev = useCallback(() => {
-    setSelectedIndex((prev) =>
-      prev === 0 ? activeImages.length - 1 : prev - 1,
-    );
-  }, [activeImages.length]);
+    setSelectedIndex((prev) => {
+      const nextIdx = prev === 0 ? activeImages.length - 1 : prev - 1;
+      // Prefetch gambar urutan sebelumnya lagi untuk transisi halus
+      prefetchImage(activeImages[nextIdx]);
+      return nextIdx;
+    });
+  }, [activeImages, prefetchImage]);
 
   const handleNext = useCallback(() => {
-    setSelectedIndex((prev) =>
-      prev === activeImages.length - 1 ? 0 : prev + 1,
-    );
-  }, [activeImages.length]);
+    setSelectedIndex((prev) => {
+      const nextIdx = prev === activeImages.length - 1 ? 0 : prev + 1;
+      // Prefetch gambar urutan berikutnya lagi untuk transisi halus
+      prefetchImage(activeImages[nextIdx]);
+      return nextIdx;
+    });
+  }, [activeImages, prefetchImage]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -82,17 +96,22 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
               alt={`${altText} - Foto Utama ${selectedIndex + 1}`}
               fill
               priority
-              sizes="100vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 75vw, 60vw"
               className="object-cover object-center cursor-pointer"
               onClick={() => setIsLightboxOpen(true)}
+              onMouseEnter={() => prefetchImage(activeImages[selectedIndex])}
+              onTouchStart={() => prefetchImage(activeImages[selectedIndex])}
             />
           </motion.div>
         </AnimatePresence>
 
-        {/* Tombol Perbesar / Focus (Efek Out Melebar/Zoom Out) */}
+        {/* Tombol Perbesar / Focus */}
         <button
           type="button"
           onClick={() => setIsLightboxOpen(true)}
+          onMouseEnter={() => prefetchImage(activeImages[selectedIndex])}
+          onFocus={() => prefetchImage(activeImages[selectedIndex])}
+          onTouchStart={() => prefetchImage(activeImages[selectedIndex])}
           aria-label="Tampilkan gambar ukuran penuh"
           title="Perbesar Gambar"
           className="absolute bottom-4 right-4 z-20 flex items-center justify-center bg-transparent text-white opacity-0 scale-125 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 ease-out cursor-pointer focus:outline-none focus:opacity-100 focus:scale-100"
@@ -106,13 +125,9 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
             className="h-10 w-11 text-white"
             aria-hidden="true"
           >
-            {/* Siku Kiri Atas */}
             <path d="M2 7V2h6" />
-            {/* Siku Kanan Atas */}
             <path d="M24 2h6v5" />
-            {/* Siku Kiri Bawah */}
             <path d="M2 17v5h6" />
-            {/* Siku Kanan Bawah */}
             <path d="M24 22h6v-5" />
           </svg>
         </button>
@@ -129,6 +144,9 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                   <button
                     type="button"
                     onClick={() => setSelectedIndex(idx)}
+                    onMouseEnter={() => prefetchImage(img)}
+                    onFocus={() => prefetchImage(img)}
+                    onTouchStart={() => prefetchImage(img)}
                     aria-label={`Tampilkan foto ke-${idx + 1}`}
                     aria-current={isSelected ? "true" : "false"}
                     className={`relative h-16 w-28 sm:h-20 sm:w-36 overflow-hidden transition-all duration-200 cursor-pointer ${
@@ -139,6 +157,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                       src={img}
                       alt={`${altText} thumbnail ${idx + 1}`}
                       fill
+                      sizes="150px"
                       className="object-cover object-center"
                     />
                   </button>
@@ -163,7 +182,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 sm:p-8 backdrop-blur-sm"
             onClick={() => setIsLightboxOpen(false)}
           >
-            {/* Tombol Tutup / Close Mark X (Dipertahankan Besar & Menggunakan SVG) */}
+            {/* Tombol Tutup / Close */}
             <button
               type="button"
               onClick={() => setIsLightboxOpen(false)}
@@ -176,7 +195,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                 stroke="currentColor"
                 strokeWidth="1.2"
                 strokeLinecap="round"
-                className="h-10 w-10 text-white"
+                className="h-10 w-11 text-white"
                 aria-hidden="true"
               >
                 <path d="M18 6L6 18" />
@@ -198,13 +217,13 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                   transition={{ duration: 0.2 }}
                   className="relative h-full w-full"
                 >
+                  {/* Priority DIHAPUS, digantikan prefetch bawaan hover/focus */}
                   <Image
                     src={activeImages[selectedIndex]}
                     alt={`${altText} - Tampilan Penuh Foto ${selectedIndex + 1}`}
                     fill
                     sizes="100vw"
                     className="object-contain"
-                    priority
                   />
                 </motion.div>
               </AnimatePresence>
@@ -217,6 +236,13 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                     onClick={(e) => {
                       e.stopPropagation();
                       handlePrev();
+                    }}
+                    onMouseEnter={() => {
+                      const prevIdx =
+                        selectedIndex === 0
+                          ? activeImages.length - 1
+                          : selectedIndex - 1;
+                      prefetchImage(activeImages[prevIdx]);
                     }}
                     aria-label="Gambar sebelumnya"
                     className="absolute left-2 sm:-left-6 top-1/2 -translate-y-1/2 flex h-14 w-14 items-center justify-center bg-transparent text-white drop-shadow-md focus:outline-none cursor-pointer"
@@ -232,6 +258,13 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
                     onClick={(e) => {
                       e.stopPropagation();
                       handleNext();
+                    }}
+                    onMouseEnter={() => {
+                      const nextIdx =
+                        selectedIndex === activeImages.length - 1
+                          ? 0
+                          : selectedIndex + 1;
+                      prefetchImage(activeImages[nextIdx]);
                     }}
                     aria-label="Gambar selanjutnya"
                     className="absolute right-2 sm:-right-6 top-1/2 -translate-y-1/2 flex h-14 w-14 items-center justify-center bg-transparent text-white drop-shadow-md focus:outline-none cursor-pointer"
