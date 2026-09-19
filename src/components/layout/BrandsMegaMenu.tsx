@@ -24,10 +24,13 @@ export const BRAND_CARDS = [
     slug: "land-rover",
     image: "/images/brands/landrover.png",
   },
-
-  { name: "Mini", slug: "Mini", image: "/images/brands/mini.png" },
+  { name: "Mini", slug: "mini", image: "/images/brands/mini.png" },
   { name: "Audi", slug: "audi", image: "/images/brands/audi.png" },
-  { name: "Maserati", slug: "maserati", image: "/images/brands/maserati.png" },
+  {
+    name: "Maserati",
+    slug: "maserati",
+    image: "/images/brands/maserati.png",
+  },
   {
     name: "Aston Martin",
     slug: "aston-martin",
@@ -42,7 +45,6 @@ export const BRAND_CARDS = [
   { name: "McLaren", slug: "mclaren", image: "/images/brands/mclaren.png" },
   { name: "Jaguar", slug: "jaguar", image: "/images/brands/jaguar.png" },
   { name: "Subaru", slug: "subaru", image: "/images/brands/subaru.png" },
-
   { name: "Lexus", slug: "lexus", image: "/images/brands/lexus.png" },
   { name: "Honda", slug: "honda", image: "/images/brands/honda.png" },
   { name: "Toyota", slug: "toyota", image: "/images/brands/toyota.png" },
@@ -50,9 +52,8 @@ export const BRAND_CARDS = [
 
 export default function BrandsMegaMenu() {
   const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Deteksi event scroll untuk menampilkan & menyembunyikan scrollbar
   const handleScroll = () => {
     setIsScrolling(true);
 
@@ -60,7 +61,6 @@ export default function BrandsMegaMenu() {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // Sembunyikan scrollbar setelah 1 detik tidak ada pergerakan
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
     }, 1000);
@@ -111,10 +111,14 @@ export default function BrandsMegaMenu() {
                 <div className="relative h-56 w-full rounded-md bg-white border border-neutral-200 shadow-sm p-6 overflow-hidden transition-all duration-300 group-hover:scale-105 group-hover:shadow-md group-hover/list:brightness-50 group-hover:!brightness-100">
                   <Image
                     src={brand.image}
-                    alt={brand.name}
+                    alt={`${brand.name} logo`}
                     fill
+                    loading="lazy"
+                    quality={65}
+                    sizes="(max-width: 768px) 90vw, (max-width: 1200px) 30vw, 330px"
                     className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 1200px) 33vw, 350px"
+                    placeholder="empty"
+                    decoding="async"
                   />
                 </div>
               </Link>
@@ -125,26 +129,28 @@ export default function BrandsMegaMenu() {
 
       {/* Scrollbar */}
       <style jsx global>{`
-        /* Sembunyikan scrollbar secara default */
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
           background: transparent;
           border-radius: 8px;
           transition: background-color 0.3s ease;
         }
 
-        /* Tampilkan scrollbar hanya saat kelas .is-scrolling aktif */
         .custom-scrollbar.is-scrolling::-webkit-scrollbar-track {
           background: #f1f1f1;
         }
+
         .custom-scrollbar.is-scrolling::-webkit-scrollbar-thumb {
           background: #a3a3a3;
         }
+
         .custom-scrollbar.is-scrolling::-webkit-scrollbar-thumb:hover {
           background: #737373;
         }
