@@ -190,7 +190,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
 
   return (
     <article
-      className={`group relative flex flex-col w-full bg-white transition-colors duration-150 overflow-hidden border border-neutral-100 sm:border-none ${
+      className={`group relative flex flex-col w-full bg-white transition-colors duration-150 overflow-hidden border border-neutral-100 rounded-t-md sm:border-none sm:rounded-none ${
         isBooked ? "opacity-80 cursor-not-allowed" : "hover:bg-neutral-50/80"
       }`}
     >
@@ -220,7 +220,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
           {/* Tulisan BOOKED tanpa background box */}
           {isBooked && (
             <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-              <span className="text-neutral-800 text-sm sm:text-base font-black uppercase tracking-[0.25em] drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)]">
+              <span className="text-neutral-900 text-sm sm:text-[20px] font-black uppercase tracking-[0.25em]">
                 BOOKED
               </span>
             </div>
