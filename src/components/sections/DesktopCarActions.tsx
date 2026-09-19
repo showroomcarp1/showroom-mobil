@@ -3,11 +3,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import Image from "next/image";
 import FontAwesomeIcon from "@/components/common/FontAwesomeIcon";
-import {
-  faCalendarCheck,
-  faCar,
-  faXmark,
-} from "@fortawesome/free-solid-svg-icons";
+import { faCalendarCheck, faCar } from "@fortawesome/free-solid-svg-icons";
 import type { Car } from "@/types/cars";
 import { updateCarStatus } from "@/lib/actions/car";
 import { useRouter } from "next/navigation";
@@ -147,7 +143,7 @@ export default function DesktopCarActions({
           className="flex items-center justify-center gap-2.5 bg-[#0073e6] px-5 py-3 text-[16px] font-medium text-white transition-all duration-150 hover:bg-[#005bb5]"
         >
           <FontAwesomeIcon icon={faCar} className="h-4 w-4" />
-          <span>Test Drive</span>
+          <span>Schedule Test Drive</span>
         </button>
       </div>
 
@@ -170,13 +166,26 @@ export default function DesktopCarActions({
                   ? "Book Vehicle"
                   : "Schedule Test Drive"}
               </h2>
+              {/* Tombol Close SVG tanpa hover effect & ukuran fleksibel */}
               <button
                 type="button"
                 onClick={closeModal}
-                className="p-2 text-neutral-500 hover:text-black border-l border-neutral-200 transition-colors ml-auto -mr-6 -my-4 px-5 py-4"
+                className="p-4 text-neutral-800 border-l border-neutral-200 flex items-center justify-center ml-auto -mr-6 -my-4 cursor-pointer"
                 aria-label="Close modal"
               >
-                <FontAwesomeIcon icon={faXmark} className="h-6 w-6" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-8 h-8 sm:w-8 sm:h-8"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
               </button>
             </header>
 
@@ -258,8 +267,9 @@ export default function DesktopCarActions({
                   className="block text-sm font-medium text-neutral-500 mb-1"
                 >
                   {activeModal === "booking"
-                    ? "Arrival Schedule *"
-                    : "Test Drive Schedule *"}
+                    ? "Arrival Schedule"
+                    : "Test Drive Schedule"}{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="scheduleDateTime"
@@ -289,19 +299,11 @@ export default function DesktopCarActions({
               </div>
 
               {/* Footer Modal / Action Buttons */}
-              <footer className="pt-4 flex items-center justify-between border-t border-neutral-100">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  disabled={isSubmitting}
-                  className="text-sm font-semibold text-neutral-500 hover:text-black transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
+              <footer className="pt-4 flex items-center justify-end border-t border-neutral-100">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#0073e6] hover:bg-[#005bb5] text-white font-bold px-8 py-3 text-sm tracking-wide uppercase transition-all disabled:opacity-50 shadow-sm"
+                  className="bg-[#0073e6] hover:bg-[#005bb5] text-white font-bold px-8 py-3 text-sm tracking-wide uppercase transition-all disabled:opacity-50 shadow-sm cursor-pointer"
                 >
                   {isSubmitting
                     ? "Processing..."
