@@ -10,33 +10,14 @@ interface HeroVideoProps {
 const STORAGE_KEY = "hero_video_time";
 
 export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
-  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Restore waktu playback dari sessionStorage secara aman di client-side
   useEffect(() => {
-    // Jalankan pengecekan cache HANYA di client-side (mencegah Mismatch Hydration)
-    const savedTime = sessionStorage.getItem(STORAGE_KEY);
-
-    if (savedTime) {
-      // Bungkus dengan queueMicrotask untuk menghindari synchronous setState di useEffect
-      queueMicrotask(() => {
-        setShouldLoadVideo(true);
-      });
-    } else {
-      // First visit: beri delay kecil agar render awal halaman tetap instan
-      const timer = setTimeout(() => {
-        setShouldLoadVideo(true);
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  const handleLoadedMetadata = () => {
     const video = videoRef.current;
     if (!video) return;
 
-    // Restore detik video dari cache sessionStorage
     const savedTime = sessionStorage.getItem(STORAGE_KEY);
     if (savedTime) {
       const time = parseFloat(savedTime);
@@ -51,7 +32,7 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
         console.warn("Autoplay ditolak oleh browser mobile.");
       });
     }
-  };
+  }, []);
 
   const handleTimeUpdate = () => {
     if (!videoRef.current) return;
@@ -69,34 +50,31 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
 
   return (
     <div className="relative w-full h-full bg-neutral-950 overflow-hidden">
-      {/* 1. Poster Image (Tampil awal 0ms dari SSR sebagai pelindung kedipan hitam) */}
+      {/* 1. Poster Layer (z-10): Penutup instan agar tidak ada black flash */}
       <img
         src={poster}
         alt="Hero Banner"
-        className={`absolute inset-0 z-10 w-full h-full object-cover transition-opacity duration-300 ease-out ${
+        className={`absolute inset-0 z-10 w-full h-full object-cover transition-opacity duration-500 ease-out ${
           isVideoPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       />
 
-      {/* 2. Video Element (Dirender konsisten setelah Hydration selesai) */}
-      {shouldLoadVideo && (
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster={poster}
-          webkit-playsinline="true"
-          preload="auto"
-          onLoadedMetadata={handleLoadedMetadata}
-          onPlaying={() => setIsVideoPlaying(true)}
-          onTimeUpdate={handleTimeUpdate}
-          className="w-full h-full object-cover pointer-events-none transform-gpu"
-        >
-          <source src={videoUrl} type="video/mp4" />
-        </video>
-      )}
+      {/* 2. Video Layer: Selalu dirender di SSR & Client untuk mencegah Hydration Error */}
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster={poster}
+        webkit-playsinline="true"
+        preload="auto"
+        onPlaying={() => setIsVideoPlaying(true)}
+        onTimeUpdate={handleTimeUpdate}
+        className="w-full h-full object-cover pointer-events-none transform-gpu"
+      >
+        <source src={videoUrl} type="video/mp4" />
+      </video>
     </div>
   );
 }
