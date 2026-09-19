@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useRef } from "react";
+import { memo, useRef, useEffect } from "react";
 
 interface HeroVideoProps {
   poster: string;
@@ -15,11 +15,34 @@ const HeroVideo = memo(function HeroVideo({
 }: HeroVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // fungsi untuk reset video ke detik 0 jika mencapai detik 20
+  // Lazy Playback via IntersectionObserver:
+  // Video HANYA akan diputar ketika elemen masuk ke dalam layar (viewport).
+  // Mencegah CPU/GPU bekerja keras saat user berada di area lain.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.15 },
+    );
+
+    observer.observe(video);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   const handleTimeUpdate = () => {
     if (videoRef.current && videoRef.current.currentTime >= 30) {
       videoRef.current.currentTime = 0;
-      // fungsi memastikan video tetap berjalan secara seamless
       videoRef.current.play().catch(() => {});
     }
   };
@@ -27,18 +50,18 @@ const HeroVideo = memo(function HeroVideo({
   return (
     <video
       ref={videoRef}
-      autoPlay
       muted
       playsInline
-      preload="auto"
+      // UBAH "auto" KE "metadata": Mencegah download file video raksasa sekaligus saat awal loading halaman
+      preload="metadata"
       poster={poster}
       onTimeUpdate={handleTimeUpdate}
-      /* GPU Acceleration & Layout Shift Protection */
-      className="w-full h-full object-cover pointer-events-none transform-gpu will-change-transform translate-z-0 backface-hidden"
+      // CSS Optimization: Menghapus utility class GPU berlebihan yang bisa memicu memory leak di mobile browser
+      className="w-full h-full object-cover pointer-events-none transform-gpu"
     >
       <source src={webmSrc} type="video/webm" />
       <source src={mp4Src} type="video/mp4" />
-      Your browser does not support the video tag.
+      Browser Anda tidak mendukung pemutaran video.
     </video>
   );
 });

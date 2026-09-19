@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import InventoryFilter from "@/components/sections/InventoryFilter";
 import CarCard from "@/components/sections/CarCard";
-import HeroVideo from "@/components/sections/HeroVideo";
+import HeroVideo from "@/components/sections/DynamicHeroVideo"; // Import dari wrapper baru
 import type {
   Car,
   ConditionType,
@@ -10,7 +10,7 @@ import type {
 } from "@/types/cars";
 import type { Database } from "@/types/database";
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 type CarRow = Database["public"]["Tables"]["cars"]["Row"];
 
@@ -46,7 +46,6 @@ export default async function CarsListingPage({
   if (brand && brand !== "All") {
     query = query.ilike("brand", `%${brand}%`);
   }
-
   if (condition && condition !== "All") {
     query = query.eq("condition", condition as ConditionType);
   }
@@ -78,7 +77,7 @@ export default async function CarsListingPage({
 
   return (
     <main className="bg-white min-h-screen text-neutral-950 pb-16">
-      {/* Hero Video Banner (GPU Accelerated & Anti Re-render) */}
+      {/* Hero Video Banner */}
       <section className="relative w-full h-[80vh] min-h-[550px] max-h-[800px] bg-neutral-950 overflow-hidden">
         <HeroVideo
           poster="/images/hero-video-poster.jpg"
@@ -101,7 +100,7 @@ export default async function CarsListingPage({
         >
           <section aria-label="Vehicle Listing" className="pt-6">
             {carList.length === 0 ? (
-              <div className=" p-16 text-center">
+              <div className="p-16 text-center">
                 <p className="text-[12px] md:text-xs text-neutral-500 font-bold tracking-[0.2em] uppercase">
                   No Vehicles Match Your Criteria
                 </p>
@@ -119,5 +118,3 @@ export default async function CarsListingPage({
     </main>
   );
 }
-
-//mengubah cols card
