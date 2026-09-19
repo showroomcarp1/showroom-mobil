@@ -4,7 +4,9 @@ export type TransmissionType =
   | "Manual Transmission"
   | "CVT";
 export type FuelType = "Petrol" | "Diesel" | "Hybrid" | "Electric";
-export type CarStatus = "available" | "sold" | "reserved";
+
+// TAMBAHKAN "booked" DI SINI:
+export type CarStatus = "available" | "booked" | "sold" | "reserved";
 
 export const CONDITION_OPTIONS: ConditionType[] = ["New", "Used", "Exclusive"];
 export const TRANSMISSION_OPTIONS: TransmissionType[] = [

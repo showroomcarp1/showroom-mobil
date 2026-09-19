@@ -40,7 +40,7 @@ export default async function CarsListingPage({
   let query = supabase
     .from("cars")
     .select("*")
-    .eq("status", "available")
+    .in("status", ["available", "booked"]) // UBAH DI SINI: Tampilkan unit "available" dan "booked"
     .order("created_at", { ascending: false });
 
   if (brand && brand !== "All") {

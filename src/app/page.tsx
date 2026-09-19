@@ -54,7 +54,7 @@ export default function HeroClient() {
         animate={
           isNavigating
             ? {
-                scale: 12, // Zoom 
+                scale: 12, // Zoom
                 opacity: [1, 1, 0],
                 filter: "blur(10px) brightness(1.2)",
               }
@@ -168,7 +168,7 @@ export default function HeroClient() {
 
             {/* Tombol Sekunder */}
             <motion.a
-              href="https://wa.me/6281234567890"
+              href="https://wa.me/6283120996468"
               target="_blank"
               rel="noopener noreferrer"
               animate={

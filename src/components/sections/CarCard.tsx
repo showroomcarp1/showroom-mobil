@@ -111,7 +111,11 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
       ? `${car.mileage.toLocaleString("id-ID")} km`
       : car.mileage || null;
 
-  const handleTrackClick = () => {
+  const handleTrackClick = (e: React.MouseEvent) => {
+    if (isBooked) {
+      e.preventDefault();
+      return;
+    }
     if (car.id) {
       incrementCarViews(car.id).catch(() => {});
     }
@@ -124,27 +128,43 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
   ].filter(Boolean);
 
   const isDataImage = mainImage.startsWith("data:");
+  const isBooked = car.status === "booked";
 
   if (variant === "compact") {
     return (
-      <article>
+      <article className={isBooked ? "opacity-75 cursor-not-allowed" : ""}>
         <Link
-          href={targetUrl}
-          prefetch={true}
+          href={isBooked ? "#" : targetUrl}
+          prefetch={!isBooked}
           onClick={handleTrackClick}
-          className="group relative flex flex-col items-center text-center p-1.5 sm:p-2 rounded-md transition-colors duration-150 hover:bg-neutral-100/70"
+          aria-disabled={isBooked}
+          tabIndex={isBooked ? -1 : undefined}
+          className={`group relative flex flex-col items-center text-center p-1.5 sm:p-2 rounded-md transition-colors duration-150 ${
+            isBooked
+              ? "pointer-events-none select-none"
+              : "hover:bg-neutral-100/70"
+          }`}
         >
           <figure className="relative h-24 w-32 sm:h-36 sm:w-56 overflow-hidden rounded-md sm:rounded-none">
-            {car.condition && (
+            {car.condition && !isBooked && (
               <div className="absolute top-0 left-0 z-10 pointer-events-none scale-75 origin-top-left">
                 <CarBadge condition={car.condition} />
               </div>
             )}
 
-            {hasDiscount && (
+            {hasDiscount && !isBooked && (
               <span className="absolute top-1.5 right-1.5 z-10 bg-red-600 text-white text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-xs tracking-wider">
                 -{discountPercentage}%
               </span>
+            )}
+
+            {/* Tulisan BOOKED tanpa background box */}
+            {isBooked && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                <span className="text-neutral-800 text-[11px] font-black uppercase tracking-[0.2em] drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
+                  BOOKED
+                </span>
+              </div>
             )}
 
             <Image
@@ -155,7 +175,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
               decoding="async"
               quality={60}
               sizes="(max-width: 640px) 128px, 224px"
-              className="object-cover"
+              className={`object-cover ${isBooked ? "grayscale opacity-60" : ""}`}
               unoptimized={isDataImage}
             />
           </figure>
@@ -169,24 +189,41 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
   }
 
   return (
-    <article className="group relative flex flex-col w-full bg-white transition-colors duration-150 hover:bg-neutral-50/80 overflow-hidden border border-neutral-100 sm:border-none">
+    <article
+      className={`group relative flex flex-col w-full bg-white transition-colors duration-150 overflow-hidden border border-neutral-100 sm:border-none ${
+        isBooked ? "opacity-80 cursor-not-allowed" : "hover:bg-neutral-50/80"
+      }`}
+    >
       <Link
-        href={targetUrl}
-        prefetch={true}
+        href={isBooked ? "#" : targetUrl}
+        prefetch={!isBooked}
         onClick={handleTrackClick}
-        className="flex flex-col h-full justify-between"
+        aria-disabled={isBooked}
+        tabIndex={isBooked ? -1 : undefined}
+        className={`flex flex-col h-full justify-between ${
+          isBooked ? "pointer-events-none select-none" : ""
+        }`}
       >
         <figure className="relative aspect-4/3 w-full overflow-hidden flex items-center justify-center rounded-t-md sm:rounded-none">
-          {car.condition && (
+          {car.condition && !isBooked && (
             <div className="absolute top-0 left-0 z-10 pointer-events-none">
               <CarBadge condition={car.condition} />
             </div>
           )}
 
-          {hasDiscount && (
+          {hasDiscount && !isBooked && (
             <span className="absolute top-2 right-2 z-10 bg-red-600 text-white text-[10px] sm:text-xs font-bold uppercase px-2 py-0.5 rounded-xs tracking-wider">
               -{discountPercentage}%
             </span>
+          )}
+
+          {/* Tulisan BOOKED tanpa background box */}
+          {isBooked && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+              <span className="text-neutral-800 text-sm sm:text-base font-black uppercase tracking-[0.25em] drop-shadow-[0_1px_3px_rgba(255,255,255,0.9)]">
+                BOOKED
+              </span>
+            </div>
           )}
 
           <Image
@@ -197,19 +234,23 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
             decoding="async"
             quality={65}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 330px"
-            className="object-cover"
+            className={`object-cover ${isBooked ? "grayscale opacity-60" : ""}`}
             unoptimized={isDataImage}
           />
         </figure>
 
         <section className="mt-2 sm:mt-3 flex flex-col flex-1 justify-between p-2 sm:p-0">
           <header>
-            <h3 className="text-sm sm:text-[18px] font-bold text-neutral-950 leading-snug tracking-tight transition-colors line-clamp-2 min-h-[2.2rem] sm:min-h-[2.6rem] uppercase">
+            <h3
+              className={`text-sm sm:text-[18px] font-bold leading-snug tracking-tight transition-colors line-clamp-2 min-h-[2.2rem] sm:min-h-[2.6rem] uppercase ${
+                isBooked ? "text-neutral-500" : "text-neutral-950"
+              }`}
+            >
               {displayTitle}
             </h3>
 
             {metadataItems.length > 0 && (
-              <div className="mt-1 sm:mt-2 flex flex-wrap items-center text-[10px] sm:text-xs text-neutral-500 font-medium uppercase tracking-wider">
+              <div className="mt-1 sm:mt-2 flex flex-wrap items-center text-[10px] sm:text-xs text-neutral-400 font-medium uppercase tracking-wider">
                 {metadataItems.map((item, index) => (
                   <span key={index} className="flex items-center">
                     {index > 0 && (
@@ -225,16 +266,20 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
           </header>
 
           <footer className="mt-2.5 sm:mt-3.5 pt-2 sm:pt-2.5 border-t border-neutral-200">
-            <span className="block text-[10px] sm:text-[11px] font-semibold text-neutral-500 uppercase tracking-wider leading-none">
+            <span className="block text-[10px] sm:text-[11px] font-semibold text-neutral-400 uppercase tracking-wider leading-none">
               Prices Starting From
             </span>
 
             <div className="mt-1 flex flex-wrap items-baseline gap-1.5 sm:gap-2">
-              <p className="text-base sm:text-xl font-bold text-red-600 tracking-tight leading-tight">
+              <p
+                className={`text-base sm:text-xl font-bold tracking-tight leading-tight ${
+                  isBooked ? "text-neutral-500" : "text-red-600"
+                }`}
+              >
                 {formattedFinalPrice}
               </p>
 
-              {hasDiscount && (
+              {hasDiscount && !isBooked && (
                 <span className="relative inline-block text-[10px] sm:text-xs font-medium text-neutral-400 after:content-[''] after:absolute after:left-0 after:top-1/2 after:w-full after:h-[1px] after:bg-current after:-translate-y-1/2 after:-rotate-3">
                   {formattedOriginalPrice}
                 </span>

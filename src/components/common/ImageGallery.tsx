@@ -74,7 +74,7 @@ export default function ImageGallery({ images, altText }: ImageGalleryProps) {
 
   return (
     <section aria-label={`Galeri foto ${altText}`} className="space-y-4">
-      <figure className="group relative aspect-[18/12] w-full overflow-hidden rounded-lg bg-neutral-950">
+      <figure className="group relative aspect-[18/12] w-full overflow-hidden bg-neutral-950">
         <Image
           src={activeImages[selectedIndex]}
           alt={`${altText} - Utama`}

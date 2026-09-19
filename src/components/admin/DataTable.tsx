@@ -11,7 +11,7 @@ import {
   faCar,
 } from "@fortawesome/free-solid-svg-icons";
 import { Car } from "@/types/cars";
-import { deleteCar } from "@/lib/actions/car";
+import { deleteCar, updateCarStatus } from "@/lib/actions/car";
 import { formatRupiah } from "@/lib/utils/formatters";
 
 interface DataTableProps {
@@ -20,6 +20,7 @@ interface DataTableProps {
 
 export default function DataTable({ cars }: DataTableProps) {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {
     if (confirm("Apakah Anda yakin ingin menghapus unit mobil ini?")) {
@@ -35,6 +36,24 @@ export default function DataTable({ cars }: DataTableProps) {
       } finally {
         setIsDeleting(null);
       }
+    }
+  };
+
+  const handleStatusChange = async (
+    id: string,
+    newStatus: "available" | "booked" | "sold",
+  ) => {
+    setIsUpdatingStatus(id);
+    try {
+      await updateCarStatus(id, newStatus);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        alert(err.message);
+      } else {
+        alert("Gagal memperbarui status.");
+      }
+    } finally {
+      setIsUpdatingStatus(null);
     }
   };
 
@@ -166,17 +185,44 @@ export default function DataTable({ cars }: DataTableProps) {
                       )}
                     </td>
 
-                    {/* Column 5: Status */}
+                    {/* Column 5: Status dengan Pilihan Pengubahan oleh Admin */}
                     <td className="px-6 py-4 align-middle whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-md border ${
+                      <select
+                        value={car.status || "available"}
+                        disabled={isUpdatingStatus === car.id}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            car.id,
+                            e.target.value as "available" | "booked" | "sold",
+                          )
+                        }
+                        className={`inline-flex items-center px-2 py-1 text-[10px] font-black uppercase tracking-widest rounded-md border cursor-pointer focus:outline-none ${
                           car.status === "available"
-                            ? "bg-emerald-600 text-white"
-                            : "bg-neutral-100 text-neutral-600 "
+                            ? "bg-emerald-600 text-white border-emerald-600"
+                            : car.status === "booked"
+                              ? "bg-neutral-500 text-white border-neutral-500"
+                              : "bg-neutral-800 text-white border-neutral-800"
                         }`}
                       >
-                        {car.status === "available" ? "Tersedia" : "Terjual"}
-                      </span>
+                        <option
+                          value="available"
+                          className="bg-white text-neutral-900 font-bold"
+                        >
+                          Tersedia
+                        </option>
+                        <option
+                          value="booked"
+                          className="bg-white text-neutral-900 font-bold"
+                        >
+                          Booked
+                        </option>
+                        <option
+                          value="sold"
+                          className="bg-white text-neutral-900 font-bold"
+                        >
+                          Terjual
+                        </option>
+                      </select>
                     </td>
 
                     {/* Column 6: Aksi */}

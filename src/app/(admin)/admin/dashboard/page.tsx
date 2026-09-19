@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export default function SettingsPage() {
-  const [whatsappNumber, setWhatsappNumber] = useState("6281234567890");
+  const [whatsappNumber, setWhatsappNumber] = useState("6283120996468");
   const [isSaved, setIsSaved] = useState(false);
 
   // Form submit handler

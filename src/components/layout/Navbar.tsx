@@ -35,7 +35,7 @@ const NAV_ITEMS: NavItem[] = [
 
 // Data Social Media Statis
 const SOCIAL_LINKS = [
-  { href: "https://wa.me/6281234567890", label: "WhatsApp", icon: faWhatsapp },
+  { href: "https://wa.me/6283120996468", label: "WhatsApp", icon: faWhatsapp },
   { href: "https://instagram.com", label: "Instagram", icon: faInstagram },
   { href: "https://facebook.com", label: "Facebook", icon: faFacebookF },
   { href: "https://youtube.com", label: "YouTube", icon: faYoutube },

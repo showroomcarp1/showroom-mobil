@@ -104,7 +104,7 @@ const menuVariants = {
                 className="mt-10 pt-8 border-t border-neutral-800/80 w-full flex flex-col items-center"
               >
                 <a
-                  href="https://wa.me/6281234567890"
+                  href="https://wa.me/6283120996468"
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={onClose}

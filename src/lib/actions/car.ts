@@ -133,6 +133,26 @@ export async function updateCar(
   revalidatePath("/");
 }
 
+export async function updateCarStatus(
+  id: string,
+  status: CarStatus,
+): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("cars").update({ status }).eq("id", id);
+
+  if (error) {
+    throw new Error(`Gagal memperbarui status unit: ${error.message}`);
+  }
+
+  updateTag("cars");
+
+  revalidatePath("/admin/cars");
+  revalidatePath("/cars");
+  revalidatePath("/cars/[slug]", "page");
+  revalidatePath("/");
+}
+
 export async function deleteCar(id: string): Promise<void> {
   const supabase = await createClient();
 
@@ -179,7 +199,7 @@ export const getTrendingCars = unstable_cache(
     const { data, error } = await supabase
       .from("cars")
       .select("*")
-      .eq("status", "available")
+      .in("status", ["available", "booked"]) // UBAH DI SINI (.eq -> .in)
       .order("views", { ascending: false })
       .limit(limit);
 

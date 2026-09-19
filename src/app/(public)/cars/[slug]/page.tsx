@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import Link from "next/link";
 import CarDetailContent from "@/components/sections/CarDetailContent";
 import MobileStickyBar from "@/components/common/MobileStickyBar";
-import DesktopFloatingBar from "@/components/sections/DesktopFloatingBar";
+import DesktopCarActions from "@/components/sections/DesktopCarActions";
 import FontAwesomeIcon from "@/components/common/FontAwesomeIcon";
 import {
   faGasPump,
@@ -33,7 +33,6 @@ function isUUID(str: string) {
   return uuidRegex.test(str);
 }
 
-// FIX: Deklarasikan fungsi cache DI LUAR request scope agar Next.js bisa reuse cache instance di RAM Server
 const getCachedCar = unstable_cache(
   async (slugParam: string): Promise<Car | null> => {
     const supabase = createPublicClient();
@@ -67,7 +66,6 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
   const resolvedParams = await params;
   const rawParam = decodeURIComponent(resolvedParams.slug);
 
-  // Dipanggil seperti fungsi biasa
   const car = await getCachedCar(rawParam);
 
   if (!car) {
@@ -101,10 +99,6 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
 
   const whatsappInquireMsg = encodeURIComponent(
     `Hello, I am interested in the ${carTitle} (${car.year}). Please let me know more details.`,
-  );
-
-  const whatsappTestDriveMsg = encodeURIComponent(
-    `Hello, I would like to schedule a Test Drive for the ${carTitle} (${car.year}).`,
   );
 
   return (
@@ -159,16 +153,17 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
         <CarDetailContent car={car}>
-          <article className="space-y-6">
-            <header className="space-y-2 border-b border-neutral-100 pb-5">
+          <article className="space-y-4">
+            {/* Header: Border bawah dihapus */}
+            <header className="space-y-1">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-neutral-900 leading-tight">
                 {carTitle}
               </h1>
-              <div className="pt-2">
+              <div className="pt-1">
                 <span className="block text-[10px] sm:text-xs font-medium text-neutral-400 uppercase tracking-widest">
                   Price
                 </span>
-                <div className="flex flex-wrap items-baseline gap-3 mt-1">
+                <div className="flex flex-wrap items-baseline gap-3 mt-0.5">
                   <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-600 tracking-tight">
                     IDR {finalPrice.toLocaleString("id-ID")}
                   </p>
@@ -186,9 +181,10 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
               </div>
             </header>
 
+            {/* Spesifikasi: Border atas spesifikasi menggantikan border header, padding per baris dibuat lebih padat (py-2.5) */}
             <section aria-label="Spesifikasi Utama">
               <dl className="divide-y divide-neutral-100 border-y border-neutral-100">
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between py-2.5">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faCar}
@@ -202,7 +198,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between py-2.5">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faTag}
@@ -216,7 +212,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between py-2.5">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faCalendar}
@@ -230,7 +226,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between py-2.5">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faRoad}
@@ -246,7 +242,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between py-2.5">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faGears}
@@ -260,7 +256,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between py-2.5">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faGasPump}
@@ -275,16 +271,17 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                 </div>
               </dl>
             </section>
+
+            {/* 3 Button Desktop Inline (Otomatis terdorong lebih ke atas) */}
+            <DesktopCarActions
+              car={car}
+              whatsappInquireMsg={whatsappInquireMsg}
+            />
           </article>
         </CarDetailContent>
       </div>
 
-      <DesktopFloatingBar
-        car={car}
-        whatsappInquireMsg={whatsappInquireMsg}
-        whatsappTestDriveMsg={whatsappTestDriveMsg}
-      />
-      <MobileStickyBar carTitle={carTitle} year={car.year} />
+      <MobileStickyBar carTitle={carTitle} year={car.year} car={car} />
     </main>
   );
 }
