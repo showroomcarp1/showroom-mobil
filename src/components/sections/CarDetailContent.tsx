@@ -6,6 +6,7 @@ import {
   AnimatePresence,
   useMotionValue,
   animate,
+  PanInfo,
 } from "framer-motion";
 import Image from "next/image";
 import ImageGallery from "@/components/common/ImageGallery";
@@ -28,59 +29,52 @@ function OverviewGalleryCarousel({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // pointer tracker untuk bedakan drag vs click
+  // pointer tracker bedakan drag vs click
   const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isDragging = useRef(false);
 
-  // duplikasi array gambar untuk infinite loop
+  // duplikasi array gambar untuk seamless loop (3 set)
   const extendedImages =
     images.length > 1 ? [...images, ...images, ...images] : images;
   const originalLength = images.length;
 
   const x = useMotionValue(0);
-  const itemWidth = 300 + 16; // ukuran gambar lebih besar: width 300px + gap 16px
+  const itemWidth = 300 + 16; // width 300px + gap 16px
+  const totalOriginalWidth = originalLength * itemWidth;
 
-  // auto scroll
+  // Auto scroll: berpindah 1 item dengan lembut, lalu berhenti sejenak
   useEffect(() => {
     if (originalLength <= 1 || isPaused || selectedIndex !== null) return;
 
-    const triggerNext = () => {
-      setCurrentIndex((prevIndex) => {
-        const nextIndex = prevIndex + 1;
-        const targetX = -nextIndex * itemWidth;
-
-        animate(x, targetX, {
-          duration: 3.2,
-          ease: [0.25, 1, 0.5, 1],
-          onComplete: () => {
-            if (nextIndex >= originalLength) {
-              const resetIndex = nextIndex % originalLength;
-              x.set(-resetIndex * itemWidth);
-              setCurrentIndex(resetIndex);
-            }
-          },
-        });
-
-        return nextIndex >= originalLength
-          ? nextIndex % originalLength
-          : nextIndex;
-      });
-    };
-
-    // langsung gerak saat mount
-    const initialTimer = setTimeout(() => {
-      triggerNext();
-    }, 50);
-
     const interval = setInterval(() => {
-      triggerNext();
+      const currentX = x.get();
+      const targetX = currentX - itemWidth;
+
+      // Update dot indicator
+      setCurrentIndex((prev) => (prev + 1) % originalLength);
+
+      // Animasi geser 1 step dengan lembut (1.2 detik)
+      animate(x, targetX, {
+        duration: 1.2,
+        ease: [0.25, 1, 0.5, 1],
+        onComplete: () => {
+          // Seamless reset jika sudah melewati set ke-2
+          if (Math.abs(targetX) >= totalOriginalWidth * 2) {
+            x.set(targetX + totalOriginalWidth);
+          }
+        },
+      });
     }, 5500);
 
-    return () => {
-      clearTimeout(initialTimer);
-      clearInterval(interval);
-    };
-  }, [originalLength, isPaused, selectedIndex, itemWidth, x]);
+    return () => clearInterval(interval);
+  }, [
+    originalLength,
+    isPaused,
+    selectedIndex,
+    itemWidth,
+    totalOriginalWidth,
+    x,
+  ]);
 
   // disable body scroll
   useEffect(() => {
@@ -119,8 +113,13 @@ function OverviewGalleryCarousel({
   // dot click handler
   const handleDotClick = (index: number) => {
     setCurrentIndex(index);
-    animate(x, -index * itemWidth, {
-      duration: 2.0,
+    const currentX = x.get();
+
+    const currentSet = Math.floor(Math.abs(currentX) / totalOriginalWidth) || 0;
+    const targetX = -(currentSet * totalOriginalWidth + index * itemWidth);
+
+    animate(x, targetX, {
+      duration: 1.2,
       ease: [0.25, 1, 0.5, 1],
     });
   };
@@ -129,7 +128,7 @@ function OverviewGalleryCarousel({
   const handlePointerDown = (e: React.PointerEvent) => {
     dragStartPos.current = { x: e.clientX, y: e.clientY };
     isDragging.current = false;
-    setIsPaused(true);
+    setIsPaused(true); // Mati saat disentuh/didrag
   };
 
   // mousemove/touchmove handler
@@ -137,13 +136,53 @@ function OverviewGalleryCarousel({
     const deltaX = Math.abs(e.clientX - dragStartPos.current.x);
     const deltaY = Math.abs(e.clientY - dragStartPos.current.y);
 
-    // jika geser lebih dari 5px dianggap drag bukan click
     if (deltaX > 5 || deltaY > 5) {
       isDragging.current = true;
     }
   };
 
-  // image click handler (hanya buka modal jika tidak drag)
+  // realtime seamless wrap saat drag
+  const handleDrag = () => {
+    if (originalLength <= 1) return;
+    const currentX = x.get();
+
+    if (currentX > 0) {
+      x.set(currentX - totalOriginalWidth);
+    } else if (currentX < -totalOriginalWidth * 2) {
+      x.set(currentX + totalOriginalWidth);
+    }
+  };
+
+  // drag end handler
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    setIsPaused(false); // Aktifkan kembali saat dilepas
+
+    if (originalLength <= 1) return;
+
+    const currentX = x.get();
+    const velocityX = info.velocity.x;
+
+    const targetIndex = Math.round((-currentX - velocityX * 0.2) / itemWidth);
+    const rawIndex =
+      ((targetIndex % originalLength) + originalLength) % originalLength;
+
+    setCurrentIndex(rawIndex);
+
+    animate(x, -targetIndex * itemWidth, {
+      duration: 0.8,
+      ease: [0.16, 1, 0.3, 1],
+      onComplete: () => {
+        const finalX = -targetIndex * itemWidth;
+        if (Math.abs(finalX) >= totalOriginalWidth * 2) {
+          x.set(finalX + totalOriginalWidth);
+        } else if (finalX > 0) {
+          x.set(finalX - totalOriginalWidth);
+        }
+      },
+    });
+  };
+
+  // image click handler
   const handleImageClick = (realIndex: number) => {
     if (!isDragging.current) {
       setSelectedIndex(realIndex);
@@ -171,25 +210,18 @@ function OverviewGalleryCarousel({
         <motion.div
           style={{ x }}
           drag="x"
-          dragConstraints={{
-            left: -(extendedImages.length - originalLength) * itemWidth,
-            right: 0,
-          }}
-          dragElastic={0.03}
-          dragTransition={{
-            bounceStiffness: 100,
-            bounceDamping: 30,
-            power: 0.05,
-          }}
+          dragElastic={0}
+          dragMomentum={false}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
-          onPointerUp={() => setIsPaused(false)}
-          className="flex gap-4"
+          className="flex gap-4 touch-pan-y"
         >
           {extendedImages.map((img, idx) => {
             const realIndex = idx % originalLength;
             return (
-              <div
+              <article
                 key={idx}
                 onClick={() => handleImageClick(realIndex)}
                 className="relative aspect-[4/3] w-[85vw] sm:w-[45vw] md:w-[35vw] lg:w-[300px] flex-shrink-0 overflow-hidden bg-neutral-100 cursor-pointer transition-transform duration-300 active:scale-[0.98]"
@@ -202,7 +234,7 @@ function OverviewGalleryCarousel({
                   sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 300px"
                   className="object-cover pointer-events-none"
                 />
-              </div>
+              </article>
             );
           })}
         </motion.div>
@@ -275,7 +307,7 @@ function OverviewGalleryCarousel({
                   className="absolute left-1 md:-left-10 z-50 text-white cursor-pointer p-1 focus:outline-none"
                 >
                   <svg
-                    className="w-8 h-12 md:w-10 md:h-16 drop-shadow-sm"
+                    className="w-8 h-12 md:w-10 md:h-16"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="3.5"
@@ -316,7 +348,7 @@ function OverviewGalleryCarousel({
                   className="absolute right-1 md:-right-10 z-50 text-white cursor-pointer p-1 focus:outline-none"
                 >
                   <svg
-                    className="w-8 h-12 md:w-10 md:h-16 drop-shadow-sm"
+                    className="w-8 h-12 md:w-10 md:h-16"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="3.5"
