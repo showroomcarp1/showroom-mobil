@@ -26,34 +26,55 @@ const conditionBreadcrumbLabel: Record<ConditionType, string> = {
   Exclusive: "EXCLUSIVE CAR",
 };
 
+// Helper untuk mengecek apakah string merupakan format UUID v4
+function isUUID(str: string) {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
 export default async function CarDetailPage({ params }: CarDetailPageProps) {
   const resolvedParams = await params;
   const rawParam = decodeURIComponent(resolvedParams.slug);
   const supabase = await createClient();
 
-  const { data: carBySlug } = await supabase
+  let car: Car | null = null;
+
+  // 1. Kueri utama berdasarkan slug
+  const { data: carBySlug, error: slugError } = await supabase
     .from("cars")
     .select("*")
     .eq("slug", rawParam)
     .maybeSingle();
 
-  let car = carBySlug as Car | null;
+  if (slugError) {
+    console.error("Error fetching car by slug:", slugError.message);
+  }
 
-  if (!car) {
-    const { data: carById } = await supabase
+  car = carBySlug as Car | null;
+
+  // 2. Fallback: Kueri berdasarkan ID jika slug tidak ditemukan
+  // Hanya jalankan jika rawParam adalah angka/integer ATAU UUID yang valid untuk mencegah Postgres Type Error
+  if (!car && (isUUID(rawParam) || !isNaN(Number(rawParam)))) {
+    const { data: carById, error: idError } = await supabase
       .from("cars")
       .select("*")
       .eq("id", rawParam)
       .maybeSingle();
 
+    if (idError) {
+      console.error("Error fetching car by ID:", idError.message);
+    }
+
     car = carById as Car | null;
   }
 
+  // Jika tetap tidak ditemukan, tampilkan 404
   if (!car) {
     notFound();
   }
 
-  // Logika kalkulasi diskon dengan komponen Card
+  // Kalkulasi Diskon
   const rawPrice = car.price || 0;
   const rawDiscount = car.discount_price || 0;
 
@@ -88,8 +109,8 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
   );
 
   return (
-    <main className="bg-white pt-3 lg:pt-6 pb-28 lg:pb-20 text-neutral-900 relative">
-      {/* Breadcrumb nav */}
+    <main className="bg-white pt-3 lg:pt-6 pb-28 lg:pb-20 text-neutral-900 relative min-h-screen">
+      {/* Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" className="bg-white py-2">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <ol className="flex items-center gap-2 text-xs uppercase tracking-[0.15em] text-neutral-900 overflow-x-auto whitespace-nowrap scrollbar-none">
@@ -104,6 +125,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
             <FontAwesomeIcon
               icon={faChevronRight}
               className="h-2 w-2 text-neutral-300"
+              aria-hidden="true"
             />
             <li>
               <Link
@@ -116,6 +138,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
             <FontAwesomeIcon
               icon={faChevronRight}
               className="h-2 w-2 text-neutral-300"
+              aria-hidden="true"
             />
             <li>
               <span className="font-normal text-neutral-900">{car.brand}</span>
@@ -123,6 +146,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
             <FontAwesomeIcon
               icon={faChevronRight}
               className="h-2 w-2 text-neutral-300"
+              aria-hidden="true"
             />
             <li>
               <span className="font-extrabold text-black truncate max-w-[200px] inline-block align-bottom">
@@ -133,10 +157,10 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
         </div>
       </nav>
 
-      {/* Detail page container */}
+      {/* Main Content Detail Container */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-4">
         <CarDetailContent car={car}>
-          {/* Header & info panel */}
+          {/* Section Informasi Mobil */}
           <article className="space-y-6">
             <header className="space-y-2 border-b border-neutral-100 pb-5">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-neutral-900 leading-tight">
@@ -164,15 +188,15 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
               </div>
             </header>
 
-            {/* Spesifikasi utama */}
+            {/* Spesifikasi Utama */}
             <section aria-label="Spesifikasi Utama">
               <dl className="divide-y divide-neutral-100 border-y border-neutral-100">
-                {/* Brand */}
                 <div className="flex items-center justify-between py-3">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faCar}
                       className="h-4 w-4 text-neutral-400"
+                      aria-hidden="true"
                     />
                     Brand
                   </dt>
@@ -181,12 +205,12 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                {/* Condition */}
                 <div className="flex items-center justify-between py-3">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faTag}
                       className="h-4 w-4 text-neutral-400"
+                      aria-hidden="true"
                     />
                     Condition
                   </dt>
@@ -195,12 +219,12 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                {/* Year */}
                 <div className="flex items-center justify-between py-3">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faCalendar}
                       className="h-4 w-4 text-neutral-400"
+                      aria-hidden="true"
                     />
                     Year
                   </dt>
@@ -209,12 +233,12 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                {/* Mileage */}
                 <div className="flex items-center justify-between py-3">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faRoad}
                       className="h-4 w-4 text-neutral-400"
+                      aria-hidden="true"
                     />
                     Mileage
                   </dt>
@@ -225,12 +249,12 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                {/* Transmission */}
                 <div className="flex items-center justify-between py-3">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faGears}
                       className="h-4 w-4 text-neutral-400"
+                      aria-hidden="true"
                     />
                     Transmission
                   </dt>
@@ -239,12 +263,12 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   </dd>
                 </div>
 
-                {/* Fuel type */}
                 <div className="flex items-center justify-between py-3">
                   <dt className="flex items-center gap-2 text-xs uppercase tracking-wider text-neutral-500 font-medium">
                     <FontAwesomeIcon
                       icon={faGasPump}
                       className="h-4 w-4 text-neutral-400"
+                      aria-hidden="true"
                     />
                     Fuel Type
                   </dt>
@@ -258,7 +282,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
         </CarDetailContent>
       </div>
 
-      {/* Floating contact bar */}
+      {/* Floating Action Bar */}
       <DesktopFloatingBar
         car={car}
         whatsappInquireMsg={whatsappInquireMsg}

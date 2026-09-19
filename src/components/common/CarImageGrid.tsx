@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,24 +11,35 @@ interface CarImageGridProps {
 
 export default function CarImageGrid({ images, altText }: CarImageGridProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const cachedImages = useRef<Set<string>>(new Set());
 
-  // Helper fungsi prefetch gambar ke browser cache
+  // Prefetch gambar secara instan ke cache memori browser
   const prefetchImage = useCallback((src: string) => {
-    if (typeof window !== "undefined" && src) {
-      const img = new window.Image();
-      img.src = src;
-    }
+    if (!src || cachedImages.current.has(src)) return;
+    const img = new window.Image();
+    img.src = src;
+    cachedImages.current.add(src);
   }, []);
 
-  // Lock scroll background saat modal dibuka
+  // Kunci scrollbar tanpa menyebabkan layout shift pada body / elemen fixed
   useEffect(() => {
     if (selectedImage) {
-      document.body.style.overflow = "hidden";
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
+      document.documentElement.style.setProperty(
+        "--scrollbar-width",
+        `${scrollbarWidth}px`
+      );
+      document.documentElement.classList.add("overflow-hidden", "pr-[var(--scrollbar-width)]");
     } else {
-      document.body.style.overflow = "unset";
+      document.documentElement.classList.remove("overflow-hidden", "pr-[var(--scrollbar-width)]");
+      document.documentElement.style.removeProperty("--scrollbar-width");
     }
+
     return () => {
-      document.body.style.overflow = "unset";
+      document.documentElement.classList.remove("overflow-hidden", "pr-[var(--scrollbar-width)]");
+      document.documentElement.style.removeProperty("--scrollbar-width");
     };
   }, [selectedImage]);
 
@@ -41,32 +52,36 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <section aria-label={`Galeri foto ${altText}`} className="space-y-4">
       {/* Grid Foto Semantik */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+      <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
         {images.map((img, idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => setSelectedImage(img)}
-            onMouseEnter={() => prefetchImage(img)}
-            onFocus={() => prefetchImage(img)}
-            onTouchStart={() => prefetchImage(img)}
-            aria-label={`Buka foto ${altText} ${idx + 1}`}
-            className="group relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 cursor-pointer transition-all text-left focus:outline-none focus:ring-2 focus:ring-neutral-400"
-          >
-            <Image
-              src={img}
-              alt={`${altText} ${idx + 1}`}
-              fill
-              sizes="(max-width: 768px) 50vw, 25vw"
-              className="object-cover object-center"
-            />
-          </button>
+          <li key={idx}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsLoaded(cachedImages.current.has(img));
+                setSelectedImage(img);
+              }}
+              onMouseEnter={() => prefetchImage(img)}
+              onFocus={() => prefetchImage(img)}
+              onTouchStart={() => prefetchImage(img)}
+              aria-label={`Buka tampilan penuh foto ${idx + 1} dari ${altText}`}
+              className="group relative aspect-[4/3] w-full overflow-hidden bg-neutral-100 cursor-pointer transition-transform duration-150 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-neutral-900"
+            >
+              <Image
+                src={img}
+                alt={`${altText} foto ke-${idx + 1}`}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover object-center group-hover:scale-105 transition-transform duration-300 ease-out"
+              />
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal Semantik */}
       <AnimatePresence>
         {selectedImage && (
           <motion.div
@@ -76,35 +91,51 @@ export default function CarImageGrid({ images, altText }: CarImageGridProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }} // Transisi instan
             onClick={() => setSelectedImage(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 md:p-10 cursor-zoom-out"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-10 cursor-zoom-out"
           >
-            {/* Tombol Close di Pojok Kanan Atas */}
+            {/* Tombol Tutup */}
             <button
               type="button"
               onClick={() => setSelectedImage(null)}
               aria-label="Tutup tampilan gambar"
-              className="absolute top-5 right-5 md:top-8 md:right-8 text-white text-3xl md:text-4xl font-light cursor-pointer z-50 leading-none select-none focus:outline-none"
+              className="absolute top-4 right-4 md:top-6 md:right-6 text-white/80 hover:text-white text-3xl font-light cursor-pointer z-50 p-2 leading-none transition-colors focus:outline-none"
             >
               ✕
             </button>
 
-            {/* Container Gambar */}
+            {/* Container Gambar & Skeleton Loader */}
             <figure
-              className="relative w-full h-full max-w-7xl max-h-[85vh] flex items-center justify-center"
+              className="relative w-full h-full max-w-7xl max-h-[85vh] flex items-center justify-center overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Skeleton Animation */}
+              {!isLoaded && (
+                <div className="absolute inset-0 bg-neutral-900/80 animate-pulse rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                </div>
+              )}
+
               <Image
                 src={selectedImage}
                 alt={altText}
                 fill
                 sizes="100vw"
-                className="object-contain select-none"
+                priority
+                unoptimized
+                onLoad={() => {
+                  setIsLoaded(true);
+                  if (selectedImage) cachedImages.current.add(selectedImage);
+                }}
+                className={`object-contain select-none transition-opacity duration-150 ${
+                  isLoaded ? "opacity-100" : "opacity-0"
+                }`}
               />
             </figure>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </section>
   );
 }
