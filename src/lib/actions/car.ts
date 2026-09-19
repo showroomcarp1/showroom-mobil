@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { createClient as createPublicClient } from "@supabase/supabase-js";
+import { revalidatePath, unstable_cache } from "next/cache";
 import type {
   ConditionType,
   TransmissionType,
@@ -13,6 +14,13 @@ import type { Database } from "@/types/database";
 type CarRow = Database["public"]["Tables"]["cars"]["Row"];
 type CarInsert = Database["public"]["Tables"]["cars"]["Insert"];
 type CarUpdate = Database["public"]["Tables"]["cars"]["Update"];
+
+// Anonymous Supabase Client khusus untuk Fetch Data Publik tanpa Overhead Cookies
+const getAnonSupabase = () =>
+  createPublicClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
 
 export interface CreateCarInput {
   title: string;
@@ -132,8 +140,9 @@ export async function deleteCar(id: string): Promise<void> {
   revalidatePath("/");
 }
 
+// OPTIMASI: Jalankan increment tanpa membatalkan cache halaman utama (revalidatePath dihapus)
 export async function incrementCarViews(carId: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = getAnonSupabase();
 
   const { error: rpcError } = await supabase.rpc("increment_car_views", {
     car_id: carId,
@@ -153,24 +162,27 @@ export async function incrementCarViews(carId: string): Promise<void> {
       .update({ views: currentViews + 1 })
       .eq("id", carId);
   }
-
-  revalidatePath("/");
 }
 
-export async function getTrendingCars(limit = 6): Promise<CarRow[]> {
-  const supabase = await createClient();
+// OPTIMASI: Gunakan unstable_cache agar query trending tersimpan di memory server selama 10 menit
+export const getTrendingCars = unstable_cache(
+  async (limit = 6): Promise<CarRow[]> => {
+    const supabase = getAnonSupabase();
 
-  const { data, error } = await supabase
-    .from("cars")
-    .select("*")
-    .eq("status", "available")
-    .order("views", { ascending: false })
-    .limit(limit);
+    const { data, error } = await supabase
+      .from("cars")
+      .select("*")
+      .eq("status", "available")
+      .order("views", { ascending: false })
+      .limit(limit);
 
-  if (error) {
-    console.error("Gagal mengambil data mobil trending:", error.message);
-    return [];
-  }
+    if (error) {
+      console.error("Gagal mengambil data mobil trending:", error.message);
+      return [];
+    }
 
-  return data ?? [];
-}
+    return data ?? [];
+  },
+  ["trending-cars"],
+  { revalidate: 600, tags: ["cars"] },
+);
