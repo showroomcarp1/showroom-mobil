@@ -131,7 +131,7 @@ export default function DesktopCarActions({
         <button
           type="button"
           onClick={() => setActiveModal("booking")}
-          className="flex items-center justify-center gap-2.5 bg-[#0073e6] px-5 py-3 text-[16px] font-medium text-white transition-all duration-150 hover:bg-[#005bb5]"
+          className="flex items-center justify-center gap-2.5 bg-[#0073e6] px-5 py-3 text-[16px] font-medium text-white transition-all duration-200 hover:bg-[#005bb5] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-[#0073e6]/40 focus:ring-offset-2 disabled:opacity-50 cursor-pointer rounded-sm"
         >
           <FontAwesomeIcon icon={faCalendarCheck} className="h-4 w-4" />
           <span>Book Now</span>
@@ -140,10 +140,10 @@ export default function DesktopCarActions({
         <button
           type="button"
           onClick={() => setActiveModal("testdrive")}
-          className="flex items-center justify-center gap-2.5 bg-[#0073e6] px-5 py-3 text-[16px] font-medium text-white transition-all duration-150 hover:bg-[#005bb5]"
+          className="flex items-center justify-center gap-2.5 bg-[#0073e6] px-5 py-3 text-[16px] font-medium text-white transition-all duration-200 hover:bg-[#005bb5] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-[#0073e6]/40 focus:ring-offset-2 disabled:opacity-50 cursor-pointer rounded-sm"
         >
           <FontAwesomeIcon icon={faCar} className="h-4 w-4" />
-          <span>Schedule Test Drive</span>
+          <span>Test Drive</span>
         </button>
       </div>
 
@@ -303,7 +303,7 @@ export default function DesktopCarActions({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="bg-[#0073e6] hover:bg-[#005bb5] text-white font-bold px-8 py-3 text-sm tracking-wide uppercase transition-all disabled:opacity-50 shadow-sm cursor-pointer"
+                  className="bg-[#0073e6] hover:bg-[#005bb5] text-white font-bold px-8 py-3 text-sm tracking-wide uppercase transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-[#0073e6]/40 focus:ring-offset-2 disabled:opacity-50 shadow-sm rounded-sm cursor-pointer"
                 >
                   {isSubmitting
                     ? "Processing..."
