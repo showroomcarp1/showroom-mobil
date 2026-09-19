@@ -25,6 +25,17 @@ const config: Config = {
           950: "#020617",
         },
       },
+      keyframes: {
+        bounceClick: {
+          "0%": { transform: "scale(1)" },
+          "30%": { transform: "scale(0.92)" },
+          "60%": { transform: "scale(1.05)" },
+          "100%": { transform: "scale(1)" },
+        },
+      },
+      animation: {
+        "bounce-click": "bounceClick 0.2s cubic-bezier(0.36, 0, 0.66, -0.56)",
+      },
     },
   },
   plugins: [],

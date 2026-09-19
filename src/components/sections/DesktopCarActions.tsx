@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, FormEvent } from "react";
+import Image from "next/image";
 import FontAwesomeIcon from "@/components/common/FontAwesomeIcon";
 import {
   faCalendarCheck,
@@ -64,7 +65,7 @@ export default function DesktopCarActions({
     });
   };
 
-  // submit handler
+  // submit handler (Fungsi tetap sama 100%)
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -123,14 +124,18 @@ export default function DesktopCarActions({
     }
   };
 
+  const mainImageUrl =
+    car.image_url || car.images?.[0] || "/images/car-placeholder.jpg";
+  const carTitleDisplay = car.title || `${car.brand} ${car.model}`.trim();
+
   return (
     <>
-      {/* action buttons */}
+      {/* Action Buttons */}
       <div className="hidden lg:grid grid-cols-2 gap-3 pt-2">
         <button
           type="button"
           onClick={() => setActiveModal("booking")}
-          className="flex items-center justify-center gap-2.5 rounded-lg bg-black px-5 py-3 text-sm font-medium text-white transition-all duration-150 hover:bg-neutral-800 active:scale-[0.99]"
+          className="flex items-center justify-center gap-2.5 bg-[#0073e6] px-5 py-3 text-[16px] font-medium text-white transition-all duration-150 hover:bg-[#005bb5]"
         >
           <FontAwesomeIcon icon={faCalendarCheck} className="h-4 w-4" />
           <span>Book Now</span>
@@ -139,91 +144,103 @@ export default function DesktopCarActions({
         <button
           type="button"
           onClick={() => setActiveModal("testdrive")}
-          className="flex items-center justify-center gap-2.5 rounded-lg bg-neutral-900 px-5 py-3 text-sm font-medium text-white transition-all duration-150 hover:bg-neutral-800 active:scale-[0.99]"
+          className="flex items-center justify-center gap-2.5 bg-[#0073e6] px-5 py-3 text-[16px] font-medium text-white transition-all duration-150 hover:bg-[#005bb5]"
         >
           <FontAwesomeIcon icon={faCar} className="h-4 w-4" />
-          <span>Schedule Test Drive</span>
+          <span>Test Drive</span>
         </button>
       </div>
 
-      {/* seamless modal */}
+      {/* Modern Dealer Style Large Modal */}
       {activeModal && (
         <dialog
           open
           aria-modal="true"
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 w-full h-full border-0 m-0 max-w-none max-h-none overflow-y-auto"
+          aria-labelledby="modal-title"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 w-full h-full border-0 m-0 max-w-none max-h-none overflow-y-auto"
         >
-          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl border border-neutral-100 transition-all">
-            {/* modal header */}
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-base font-semibold text-neutral-900">
-                  {activeModal === "booking"
-                    ? "Book Vehicle"
-                    : "Schedule Test Drive"}
-                </h2>
-                <p className="text-xs text-neutral-500 mt-0.5">
-                  {activeModal === "booking"
-                    ? "Reserve your visit to inspect this unit"
-                    : "Select your preferred date & time"}
-                </p>
-              </div>
-
+          <div className="relative w-full max-w-3xl bg-white shadow-2xl border border-neutral-200 overflow-hidden text-neutral-800">
+            {/* Header Modal */}
+            <header className="flex items-center justify-between border-b border-neutral-200 px-6 py-4 bg-white">
+              <h2
+                id="modal-title"
+                className="text-xl sm:text-2xl font-light text-neutral-800 tracking-tight"
+              >
+                {activeModal === "booking"
+                  ? "Book Vehicle"
+                  : "Schedule Test Drive"}
+              </h2>
               <button
                 type="button"
                 onClick={closeModal}
-                className="text-neutral-400 hover:text-black p-1 rounded-md transition-colors -mr-1 -mt-1"
+                className="p-2 text-neutral-500 hover:text-black border-l border-neutral-200 transition-colors ml-auto -mr-6 -my-4 px-5 py-4"
                 aria-label="Close modal"
               >
-                <FontAwesomeIcon icon={faXmark} className="h-4 w-4" />
+                <FontAwesomeIcon icon={faXmark} className="h-6 w-6" />
               </button>
-            </div>
+            </header>
 
-            {/* car summary card */}
-            <div className="my-4 p-3 bg-neutral-50/80 rounded-xl border border-neutral-100 flex items-center justify-between">
-              <div>
-                <p className="text-[11px] text-neutral-400 font-medium">
-                  Vehicle
-                </p>
-                <p className="text-xs font-semibold text-neutral-900 mt-0.5">
-                  {car.title}
-                </p>
+            {/* Container Ringkasan Mobil (Abu-Abu) */}
+            <article className="bg-[#f4f4f5] p-6 flex flex-col sm:flex-row items-center gap-6 border-b border-neutral-200">
+              <div className="relative w-full sm:w-64 h-40 shrink-0 bg-neutral-200 rounded-sm overflow-hidden">
+                <Image
+                  src={mainImageUrl}
+                  alt={carTitleDisplay}
+                  fill
+                  priority
+                  className="object-cover"
+                />
               </div>
-              {car.price && (
-                <div className="text-right">
-                  <p className="text-[11px] text-neutral-400 font-medium">
-                    Price
-                  </p>
-                  <p className="text-xs font-semibold text-neutral-900 mt-0.5">
+
+              <div className="flex-1 text-left w-full">
+                <h3 className="text-xl sm:text-2xl font-bold text-neutral-900 leading-tight">
+                  {carTitleDisplay}
+                </h3>
+                <p className="text-xs text-neutral-500 font-mono uppercase mt-1">
+                  ID / VIN: {car.id ? car.id.slice(0, 18) : "N/A"}
+                </p>
+                {car.price && (
+                  <p className="text-lg font-bold text-neutral-800 mt-3">
                     Rp {car.price.toLocaleString("id-ID")}
                   </p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </article>
 
-            {/* modal form */}
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            {/* Form Input Line-Style */}
+            <form
+              onSubmit={handleSubmit}
+              className="p-6 sm:p-8 space-y-6 bg-white"
+            >
               <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1">
-                  Full Name
+                <label
+                  htmlFor="fullName"
+                  className="block text-sm font-medium text-neutral-500 mb-1"
+                >
+                  Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="fullName"
                   type="text"
                   required
                   name="name"
                   autoComplete="name"
-                  placeholder="Enter Your Name"
+                  placeholder="Enter your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-lg bg-neutral-50/80 border border-neutral-200/80 px-3 py-2 text-xs text-neutral-900 transition-all focus:bg-white focus:border-black focus:outline-none placeholder:text-neutral-400"
+                  className="w-full border-b border-neutral-300 bg-transparent py-2 text-sm text-neutral-900 focus:border-black focus:outline-none transition-colors placeholder:text-neutral-300"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1">
-                  Phone / WhatsApp
+                <label
+                  htmlFor="phoneNumber"
+                  className="block text-sm font-medium text-neutral-500 mb-1"
+                >
+                  Phone / WhatsApp <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="phoneNumber"
                   type="tel"
                   required
                   name="phone"
@@ -231,56 +248,68 @@ export default function DesktopCarActions({
                   placeholder="+62 812 3456 7890"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full rounded-lg bg-neutral-50/80 border border-neutral-200/80 px-3 py-2 text-xs text-neutral-900 transition-all focus:bg-white focus:border-black focus:outline-none placeholder:text-neutral-400"
+                  className="w-full border-b border-neutral-300 bg-transparent py-2 text-sm text-neutral-900 focus:border-black focus:outline-none transition-colors placeholder:text-neutral-300"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1">
+                <label
+                  htmlFor="scheduleDateTime"
+                  className="block text-sm font-medium text-neutral-500 mb-1"
+                >
                   {activeModal === "booking"
-                    ? "Arrival Schedule"
-                    : "Test Drive Schedule"}
+                    ? "Arrival Schedule *"
+                    : "Test Drive Schedule *"}
                 </label>
                 <input
+                  id="scheduleDateTime"
                   type="datetime-local"
                   required
                   value={datetime}
                   onChange={(e) => setDatetime(e.target.value)}
-                  className="w-full rounded-lg bg-neutral-50/80 border border-neutral-200/80 px-3 py-2 text-xs text-neutral-900 transition-all focus:bg-white focus:border-black focus:outline-none"
+                  className="w-full border-b border-neutral-300 bg-transparent py-2 text-sm text-neutral-900 focus:border-black focus:outline-none transition-colors text-neutral-700"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1">
-                  Notes
+                <label
+                  htmlFor="notesText"
+                  className="block text-sm font-medium text-neutral-500 mb-1"
+                >
+                  Message / Notes
                 </label>
                 <textarea
+                  id="notesText"
                   rows={2}
-                  placeholder="Optional notes..."
+                  placeholder="Add optional notes or special requests..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full rounded-lg bg-neutral-50/80 border border-neutral-200/80 px-3 py-2 text-xs text-neutral-900 transition-all focus:bg-white focus:border-black focus:outline-none placeholder:text-neutral-400 resize-none"
+                  className="w-full border-b border-neutral-300 bg-transparent py-2 text-sm text-neutral-900 focus:border-black focus:outline-none transition-colors placeholder:text-neutral-300 resize-none"
                 />
               </div>
 
-              {/* modal actions */}
-              <div className="pt-2 flex gap-2.5">
+              {/* Footer Modal / Action Buttons */}
+              <footer className="pt-4 flex items-center justify-between border-t border-neutral-100">
                 <button
                   type="button"
                   onClick={closeModal}
                   disabled={isSubmitting}
-                  className="w-1/2 rounded-lg border border-neutral-200/80 py-2.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+                  className="text-sm font-semibold text-neutral-500 hover:text-black transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-1/2 rounded-lg bg-black py-2.5 text-xs font-medium text-white hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                  className="bg-[#0073e6] hover:bg-[#005bb5] text-white font-bold px-8 py-3 text-sm tracking-wide uppercase transition-all disabled:opacity-50 shadow-sm"
                 >
-                  {isSubmitting ? "Processing..." : "Send"}
+                  {isSubmitting
+                    ? "Processing..."
+                    : activeModal === "booking"
+                      ? "Submit"
+                      : "Submit"}
                 </button>
-              </div>
+              </footer>
             </form>
           </div>
         </dialog>
