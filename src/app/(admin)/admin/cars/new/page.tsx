@@ -19,9 +19,6 @@ import {
   faSpinner,
   faCloudArrowUp,
   faXmark,
-  faGauge,
-  faHeading,
-  faImages,
   faPercent,
   faMoneyBillWave,
 } from "@fortawesome/free-solid-svg-icons";
@@ -74,7 +71,6 @@ export default function NewCarPage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // State Kontrol Mode Diskon (Persen vs Nominal Rupiah)
   const [discountType, setDiscountType] = useState<"percentage" | "fixed">(
     "percentage",
   );
@@ -138,7 +134,6 @@ export default function NewCarPage() {
         [name]: parsedValue,
       };
 
-      // Recalculate discount nominal ketika harga OTR berubah saat mode persentase aktif
       if (name === "price" && discountType === "percentage") {
         const calculatedDiscount = Math.round(
           ((parsedValue as number) * discountPercent) / 100,
@@ -146,7 +141,6 @@ export default function NewCarPage() {
         updated.discount_price = calculatedDiscount;
       }
 
-      // Sinkronkan persen jika input rupiah potongan diubah secara manual
       if (name === "discount_price" && discountType === "fixed") {
         const p = updated.price;
         const d = parsedValue as number;
@@ -168,7 +162,6 @@ export default function NewCarPage() {
     });
   };
 
-  // Handler Ganti Mode Diskon (% / Rp)
   const handleDiscountTypeChange = (type: "percentage" | "fixed") => {
     setDiscountType(type);
     if (type === "percentage") {
@@ -191,7 +184,6 @@ export default function NewCarPage() {
     }
   };
 
-  // Handler Input Persentase Diskon (0 - 100%)
   const handleDiscountPercentChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -207,7 +199,6 @@ export default function NewCarPage() {
     }
   };
 
-  // Fungsi helper upload file (Inisialisasi Supabase dipindah ke dalam sini agar aman dari prerender build)
   const uploadFiles = async (files: FileList): Promise<string[]> => {
     const supabase = createClient();
     const uploadedUrls: string[] = [];
@@ -295,41 +286,46 @@ export default function NewCarPage() {
   const finalNetPrice = Math.max(0, formData.price - formData.discount_price);
 
   return (
-    <main className="max-w-5xl mx-auto pb-16 space-y-8">
-      {/* Header Utama */}
-      <header className="border-b border-neutral-200 pb-5">
+    <main className="max-w-6xl mx-auto pb-16 space-y-6">
+      {/* Header */}
+      <header className="border-b border-neutral-200 pb-4">
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-          Tambah Unit Baru
+          Tambah Mobil Baru
         </h1>
-        <p className="text-xs text-neutral-500 mt-1 font-normal">
-          Kelola katalog kendaraan dengan spesifikasi teknis dan galeri foto
-          yang rapi.
+        <p className="text-xs text-neutral-500 mt-1">
+          Lengkapi formulir di bawah ini untuk menambahkan unit mobil ke
+          inventaris.
         </p>
       </header>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* SECTION 1: INFORMASI DASAR */}
-        <section className="bg-white border border-neutral-200 rounded-md p-6 space-y-6 shadow-xs">
-          <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
-            <div className="p-2 rounded-md bg-neutral-100 text-neutral-700">
-              <FontAwesomeIcon icon={faHeading} className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider">
-                Judul & Identitas Mobil
-              </h2>
-              <p className="text-xs text-neutral-500">
-                Merek, model, varian, dan judul tampilan di katalog.
-              </p>
-            </div>
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Identitas Unit */}
+        <section
+          aria-labelledby="identity-heading"
+          className="bg-white border border-neutral-200 rounded-lg p-5 sm:p-6 space-y-5 shadow-xs"
+        >
+          <header className="border-b border-neutral-100 pb-3">
+            <h2
+              id="identity-heading"
+              className="text-sm font-bold text-neutral-900 uppercase tracking-wider"
+            >
+              Judul & Identitas Mobil
+            </h2>
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Informasi dasar merek, model, varian, dan judul katalog.
+            </p>
+          </header>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="brand"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Merek / Brand *
               </label>
               <select
+                id="brand"
                 name="brand"
                 value={formData.brand}
                 onChange={handleBrandChange}
@@ -344,10 +340,14 @@ export default function NewCarPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="model"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Model *
               </label>
               <input
+                id="model"
                 type="text"
                 name="model"
                 required
@@ -359,10 +359,14 @@ export default function NewCarPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="variant"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Varian
               </label>
               <input
+                id="variant"
                 type="text"
                 name="variant"
                 placeholder="Contoh: RS Turbo / M Sport"
@@ -374,10 +378,14 @@ export default function NewCarPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+            <label
+              htmlFor="title"
+              className="block text-xs font-semibold text-neutral-700 mb-1.5"
+            >
               Judul Tampilan Unit (Otomatis) *
             </label>
             <input
+              id="title"
               type="text"
               name="title"
               required
@@ -388,28 +396,33 @@ export default function NewCarPage() {
           </div>
         </section>
 
-        {/* SECTION 2: SPESIFIKASI TEKNIS & HARGA */}
-        <section className="bg-white border border-neutral-200 rounded-md p-6 space-y-6 shadow-xs">
-          <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
-            <div className="p-2 rounded-md bg-neutral-100 text-neutral-700">
-              <FontAwesomeIcon icon={faGauge} className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider">
-                Spesifikasi & Harga
-              </h2>
-              <p className="text-xs text-neutral-500">
-                Kondisi teknis, transmisi, harga OTR, dan skema diskon.
-              </p>
-            </div>
-          </div>
+        {/* Spesifikasi & Harga */}
+        <section
+          aria-labelledby="specs-heading"
+          className="bg-white border border-neutral-200 rounded-lg p-5 sm:p-6 space-y-5 shadow-xs"
+        >
+          <header className="border-b border-neutral-100 pb-3">
+            <h2
+              id="specs-heading"
+              className="text-sm font-bold text-neutral-900 uppercase tracking-wider"
+            >
+              Spesifikasi & Harga
+            </h2>
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Kondisi teknis, transmisi, harga OTR, dan skema diskon.
+            </p>
+          </header>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="condition"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Kondisi *
               </label>
               <select
+                id="condition"
                 name="condition"
                 value={formData.condition}
                 onChange={handleChange}
@@ -424,10 +437,14 @@ export default function NewCarPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="transmission"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Transmisi *
               </label>
               <select
+                id="transmission"
                 name="transmission"
                 value={formData.transmission}
                 onChange={handleChange}
@@ -442,10 +459,14 @@ export default function NewCarPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="fuel_type"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Bahan Bakar *
               </label>
               <select
+                id="fuel_type"
                 name="fuel_type"
                 value={formData.fuel_type}
                 onChange={handleChange}
@@ -460,10 +481,14 @@ export default function NewCarPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="status"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Status *
               </label>
               <select
+                id="status"
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
@@ -478,10 +503,14 @@ export default function NewCarPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="year"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Tahun *
               </label>
               <input
+                id="year"
                 type="number"
                 name="year"
                 required
@@ -492,10 +521,14 @@ export default function NewCarPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+              <label
+                htmlFor="mileage"
+                className="block text-xs font-semibold text-neutral-700 mb-1.5"
+              >
                 Kilometer (KM)
               </label>
               <input
+                id="mileage"
                 type="number"
                 name="mileage"
                 value={formData.mileage || ""}
@@ -505,14 +538,18 @@ export default function NewCarPage() {
             </div>
           </div>
 
-          {/* HARGA & DISKON SECTION */}
+          {/* Skema Harga & Diskon */}
           <div className="p-4 bg-neutral-50/80 rounded-md border border-neutral-200 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+                <label
+                  htmlFor="price"
+                  className="block text-xs font-semibold text-neutral-700 mb-1.5"
+                >
                   Harga OTR (Rp) *
                 </label>
                 <input
+                  id="price"
                   type="number"
                   name="price"
                   required
@@ -525,9 +562,9 @@ export default function NewCarPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-neutral-700">
+                  <span className="block text-xs font-semibold text-neutral-700">
                     Mode Diskon
-                  </label>
+                  </span>
                   <div className="flex rounded border border-neutral-300 bg-white p-0.5">
                     <button
                       type="button"
@@ -600,7 +637,7 @@ export default function NewCarPage() {
               </div>
             </div>
 
-            {/* Panel Ringkasan Harga Akhir */}
+            {/* Ringkasan Kalkulasi */}
             {formData.price > 0 && (
               <div className="pt-3 border-t border-neutral-200 flex flex-wrap justify-between items-center text-xs gap-2">
                 <span className="font-medium text-neutral-600">
@@ -627,10 +664,14 @@ export default function NewCarPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-neutral-700 mb-1.5">
+            <label
+              htmlFor="description"
+              className="block text-xs font-semibold text-neutral-700 mb-1.5"
+            >
               Deskripsi Unit
             </label>
             <textarea
+              id="description"
               name="description"
               rows={4}
               placeholder="Jelaskan kondisi unit, fitur unggulan, garansi, atau catatan penting..."
@@ -641,23 +682,24 @@ export default function NewCarPage() {
           </div>
         </section>
 
-        {/* SECTION 3: UPLOAD FOTO DIKELOMPOKKAN */}
-        <section className="bg-white border border-neutral-200 rounded-md p-6 space-y-6 shadow-xs">
-          <div className="flex items-center gap-3 border-b border-neutral-100 pb-4">
-            <div className="p-2 rounded-md bg-neutral-100 text-neutral-700">
-              <FontAwesomeIcon icon={faImages} className="h-4 w-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-900 uppercase tracking-wider">
-                Galeri Foto Kategori
-              </h2>
-              <p className="text-xs text-neutral-500">
-                Unggah foto kendaraan sesuai bagiannya.
-              </p>
-            </div>
-          </div>
+        {/* Galeri Foto */}
+        <section
+          aria-labelledby="gallery-heading"
+          className="bg-white border border-neutral-200 rounded-lg p-5 sm:p-6 space-y-5 shadow-xs"
+        >
+          <header className="border-b border-neutral-100 pb-3">
+            <h2
+              id="gallery-heading"
+              className="text-sm font-bold text-neutral-900 uppercase tracking-wider"
+            >
+              Galeri Foto Kategori
+            </h2>
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Unggah foto kendaraan sesuai dengan bagian-bagiannya.
+            </p>
+          </header>
 
-          {/* Upload Main/Overview */}
+          {/* Foto Utama */}
           <div className="space-y-2">
             <label className="block text-xs font-semibold text-neutral-700">
               1. Foto Utama / Cover * (Wajib minimal 1 foto)
@@ -670,7 +712,7 @@ export default function NewCarPage() {
                 >
                   <img
                     src={url}
-                    alt="Main"
+                    alt="Foto Utama"
                     className="w-full h-full object-cover"
                   />
                   <button
@@ -703,7 +745,7 @@ export default function NewCarPage() {
             </div>
           </div>
 
-          {/* Upload Eksterior */}
+          {/* Foto Eksterior */}
           <div className="space-y-2 pt-3 border-t border-neutral-100">
             <label className="block text-xs font-semibold text-neutral-700">
               2. Foto Eksterior
@@ -716,7 +758,7 @@ export default function NewCarPage() {
                 >
                   <img
                     src={url}
-                    alt="Exterior"
+                    alt="Foto Eksterior"
                     className="w-full h-full object-cover"
                   />
                   <button
@@ -751,7 +793,7 @@ export default function NewCarPage() {
             </div>
           </div>
 
-          {/* Upload Interior */}
+          {/* Foto Interior */}
           <div className="space-y-2 pt-3 border-t border-neutral-100">
             <label className="block text-xs font-semibold text-neutral-700">
               3. Foto Interior
@@ -764,7 +806,7 @@ export default function NewCarPage() {
                 >
                   <img
                     src={url}
-                    alt="Interior"
+                    alt="Foto Interior"
                     className="w-full h-full object-cover"
                   />
                   <button
@@ -800,7 +842,7 @@ export default function NewCarPage() {
           </div>
         </section>
 
-        {/* Submit Action */}
+        {/* Footer Tombol Aksi */}
         <footer className="flex justify-end gap-3 pt-4 border-t border-neutral-200">
           <Link
             href="/admin/cars"

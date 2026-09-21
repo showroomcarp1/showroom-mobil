@@ -17,13 +17,10 @@ export default async function AdminCarsPage() {
 
   return (
     <main className="space-y-6">
-      <header>
-        <h1 className="text-[30px] font-extrabold text-neutral-900">
-          Kelola Katalog Unit
+      <header className="border-b border-neutral-200 pb-5">
+        <h1 className="text-[30px] font-bold text-neutral-900 tracking-normal">
+          Kelola Katalog Mobil
         </h1>
-        <p className="text-sm text-neutral-500 mt-1">
-          Daftar lengkap seluruh mobil yang terdaftar di database.
-        </p>
       </header>
 
       {/* Tabel Inventaris Terhubung Supabase */}

@@ -105,7 +105,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
     <main className="bg-white pt-3 lg:pt-6 pb-28 lg:pb-20 text-neutral-900 relative min-h-screen">
       <nav aria-label="Breadcrumb" className="bg-white py-2">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <ol className="flex items-center flex-wrap gap-2 text-xs text-neutral-500 font-medium tracking-wide">
+          <ol className="flex items-center flex-wrap gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-neutral-500 font-medium tracking-wide">
             <li>
               <Link
                 href="/cars"
@@ -122,7 +122,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
             >
               <FontAwesomeIcon
                 icon={faChevronRight}
-                className="h-2.5 w-2.5 stroke-[2]"
+                className="h-2 w-2 sm:h-2.5 sm:w-2.5 stroke-[2]"
               />
             </li>
 
@@ -142,7 +142,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
             >
               <FontAwesomeIcon
                 icon={faChevronRight}
-                className="h-2.5 w-2.5 stroke-[2]"
+                className="h-2 w-2 sm:h-2.5 sm:w-2.5 stroke-[2]"
               />
             </li>
 
@@ -158,14 +158,14 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
             >
               <FontAwesomeIcon
                 icon={faChevronRight}
-                className="h-2.5 w-2.5 stroke-[2]"
+                className="h-2 w-2 sm:h-2.5 sm:w-2.5 stroke-[2]"
               />
             </li>
 
             <li className="min-w-0">
               <span
                 aria-current="page"
-                className="font-semibold text-neutral-900 truncate max-w-[180px] sm:max-w-[260px] block"
+                className="font-semibold text-neutral-900 truncate max-w-[120px] sm:max-w-[260px] block"
                 title={carTitle}
               >
                 {carTitle}
