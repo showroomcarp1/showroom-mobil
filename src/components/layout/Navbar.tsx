@@ -309,10 +309,14 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsMobileSearchOpen(true)}
-                className="lg:hidden p-2 hover:text-neutral-300 transition-colors cursor-pointer"
+                className="lg:hidden p-2 text-white hover:text-neutral-300 transition-colors cursor-pointer flex items-center justify-center shrink-0"
                 aria-label="Open Mobile Search"
               >
-                <FontAwesomeIcon icon={faMagnifyingGlass} className="w-5 h-5" />
+                <FontAwesomeIcon
+                  icon={faMagnifyingGlass}
+                  className="w-5 h-5 text-current"
+                  style={{ width: "1.25rem", height: "1.25rem" }} // Kunci ukuran inline CSS agar terhindar dari ketiadaan CSS Tailwind saat SSR
+                />
               </button>
             </div>
           </div>
@@ -411,7 +415,9 @@ export default function Navbar() {
                         type="button"
                         onClick={() => setLanguage("EN")}
                         className={`transition-colors cursor-pointer ${
-                          language === "EN" ? "text-white font-bold" : "text-neutral-500 hover:text-neutral-300"
+                          language === "EN"
+                            ? "text-white font-bold"
+                            : "text-neutral-500 hover:text-neutral-300"
                         }`}
                       >
                         EN
@@ -421,7 +427,9 @@ export default function Navbar() {
                         type="button"
                         onClick={() => setLanguage("ID")}
                         className={`transition-colors cursor-pointer ${
-                          language === "ID" ? "text-white font-bold" : "text-neutral-500 hover:text-neutral-300"
+                          language === "ID"
+                            ? "text-white font-bold"
+                            : "text-neutral-500 hover:text-neutral-300"
                         }`}
                       >
                         ID
