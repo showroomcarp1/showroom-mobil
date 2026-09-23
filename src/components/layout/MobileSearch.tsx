@@ -197,10 +197,14 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                     setResults([]);
                     inputRef.current?.focus();
                   }}
-                  className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-black shrink-0 cursor-pointer transition-colors"
+                  className="flex items-center justify-center w-4 h-4 rounded-full bg-neutral-400 hover:bg-neutral-300 active:bg-neutral-200 text-black shrink-0 cursor-pointer transition-colors"
                   aria-label="Clear input"
                 >
-                  <FontAwesomeIcon icon={faXmark} className="w-2 h-2 block" />
+                  <FontAwesomeIcon
+                    icon={faXmark}
+                    className="w-2.5 h-2.5 block"
+                    style={{ width: "10px", height: "10px" }}
+                  />
                 </button>
               )}
             </form>
