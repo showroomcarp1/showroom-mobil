@@ -393,7 +393,7 @@ export default function InventoryFilter({
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="inline-flex h-12 xl:h-14 w-full items-center justify-center bg-[#b89563] hover:bg-[#a38253] text-white font-black uppercase tracking-[0.2em] text-xl xl:text-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#a38253] focus:ring-offset-2 focus:ring-offset-black cursor-pointer rounded-none shadow-md"
+                    className="inline-flex h-12 xl:h-14 w-full items-center justify-center bg-[#b89563] hover:bg-[#a38253] text-white font-black uppercase tracking-[0.2em] text-xl xl:text-xl transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-[#a38253] focus:ring-offset-2 focus:ring-offset-black cursor-pointer rounded-lg shadow-md"
                   >
                     {isPending ? (
                       <span className="flex items-center gap-2">
