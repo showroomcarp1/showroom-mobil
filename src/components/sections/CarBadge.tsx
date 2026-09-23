@@ -12,7 +12,7 @@ export default function CarBadge({ condition, className = "" }: CarBadgeProps) {
   // Warna elegan & creamy tanpa border dan tanpa shadow untuk tampilan seamless
   const styles: Record<ConditionType, string> = {
     New: "bg-[#F5F2EB] text-[#1C1917]", // Soft Warm Cream
-    Used: "bg-[#E4D2D2] text-[#44403C]", // Muted Sand Stone
+    Used: "bg-[#000000] text-[#FFFFFF]", // Muted Sand Stone
     Exclusive: "bg-[#FDF0D5] text-[#78350F]", // Creamy Champagne Gold
   };
 
