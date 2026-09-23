@@ -11,7 +11,9 @@ import type {
 } from "@/types/cars";
 import type { Database } from "@/types/database";
 
-export const revalidate = 300;
+// Memaksa halaman untuk selalu di-render secara dinamis di server saat request datang
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type CarRow = Database["public"]["Tables"]["cars"]["Row"];
 
