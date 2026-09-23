@@ -213,3 +213,27 @@ export const getTrendingCars = unstable_cache(
   ["trending-cars"],
   { revalidate: 600, tags: ["cars"] },
 );
+
+// Tambahkan di bagian bawah file lib/actions/car.ts
+
+export async function searchCars(query: string, limit = 5): Promise<CarRow[]> {
+  if (!query || query.trim().length === 0) return [];
+
+  const supabase = getAnonSupabase();
+  const searchPattern = `%${query.trim()}%`;
+
+  const { data, error } = await supabase
+    .from("cars")
+    .select("*")
+    .or(`title.ilike.${searchPattern},brand.ilike.${searchPattern},model.ilike.${searchPattern}`)
+    .in("status", ["available", "booked"])
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("Gagal melakukan pencarian mobil:", error.message);
+    return [];
+  }
+
+  return data ?? [];
+}

@@ -18,6 +18,7 @@ interface CarDetailContentProps {
   children?: React.ReactNode;
 }
 
+// Komponen Karusel Galeri Overview
 function OverviewGalleryCarousel({
   images,
   altText,
@@ -29,11 +30,11 @@ function OverviewGalleryCarousel({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // pointer tracker bedakan drag vs click
+  // Tracker pointer untuk membedakan antara drag dan click
   const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isDragging = useRef(false);
 
-  // duplikasi array gambar untuk seamless loop (3 set)
+  // Duplikasi array gambar untuk seamless infinite loop
   const extendedImages =
     images.length > 1 ? [...images, ...images, ...images] : images;
   const originalLength = images.length;
@@ -42,7 +43,7 @@ function OverviewGalleryCarousel({
   const itemWidth = 300 + 16; // width 300px + gap 16px
   const totalOriginalWidth = originalLength * itemWidth;
 
-  // Auto scroll: berpindah 1 item dengan lembut, lalu berhenti sejenak
+  // Auto scroll lembut
   useEffect(() => {
     if (originalLength <= 1 || isPaused || selectedIndex !== null) return;
 
@@ -50,15 +51,12 @@ function OverviewGalleryCarousel({
       const currentX = x.get();
       const targetX = currentX - itemWidth;
 
-      // Update dot indicator
       setCurrentIndex((prev) => (prev + 1) % originalLength);
 
-      // Animasi geser 1 step dengan lembut (1.2 detik)
       animate(x, targetX, {
         duration: 1.2,
         ease: [0.25, 1, 0.5, 1],
         onComplete: () => {
-          // Seamless reset jika sudah melewati set ke-2
           if (Math.abs(targetX) >= totalOriginalWidth * 2) {
             x.set(targetX + totalOriginalWidth);
           }
@@ -76,7 +74,7 @@ function OverviewGalleryCarousel({
     x,
   ]);
 
-  // disable body scroll
+  // Kunci scroll halaman saat lightbox modal terbuka
   useEffect(() => {
     if (selectedIndex !== null) {
       document.body.style.overflow = "hidden";
@@ -88,7 +86,7 @@ function OverviewGalleryCarousel({
     };
   }, [selectedIndex]);
 
-  // keyboard nav
+  // Navigasi keyboard pada lightbox
   useEffect(() => {
     if (selectedIndex === null) return;
 
@@ -110,7 +108,7 @@ function OverviewGalleryCarousel({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedIndex, originalLength]);
 
-  // dot click handler
+  // Click handler indikator dot
   const handleDotClick = (index: number) => {
     setCurrentIndex(index);
     const currentX = x.get();
@@ -124,14 +122,13 @@ function OverviewGalleryCarousel({
     });
   };
 
-  // mousedown/touchstart handler
+  // Handler interaksi pointer
   const handlePointerDown = (e: React.PointerEvent) => {
     dragStartPos.current = { x: e.clientX, y: e.clientY };
     isDragging.current = false;
-    setIsPaused(true); // Mati saat disentuh/didrag
+    setIsPaused(true);
   };
 
-  // mousemove/touchmove handler
   const handlePointerMove = (e: React.PointerEvent) => {
     const deltaX = Math.abs(e.clientX - dragStartPos.current.x);
     const deltaY = Math.abs(e.clientY - dragStartPos.current.y);
@@ -141,7 +138,7 @@ function OverviewGalleryCarousel({
     }
   };
 
-  // realtime seamless wrap saat drag
+  // Seamless wrap saat digeser
   const handleDrag = () => {
     if (originalLength <= 1) return;
     const currentX = x.get();
@@ -153,9 +150,8 @@ function OverviewGalleryCarousel({
     }
   };
 
-  // drag end handler
   const handleDragEnd = (_: unknown, info: PanInfo) => {
-    setIsPaused(false); // Aktifkan kembali saat dilepas
+    setIsPaused(false);
 
     if (originalLength <= 1) return;
 
@@ -182,7 +178,6 @@ function OverviewGalleryCarousel({
     });
   };
 
-  // image click handler
   const handleImageClick = (realIndex: number) => {
     if (!isDragging.current) {
       setSelectedIndex(realIndex);
@@ -191,7 +186,7 @@ function OverviewGalleryCarousel({
 
   if (!images || images.length === 0) {
     return (
-      <div className="p-8 text-center bg-neutral-50 text-xs text-neutral-400 font-medium">
+      <div className="p-8 text-center bg-neutral-900 border border-neutral-800 text-xs text-neutral-500 font-medium rounded-xs">
         No gallery images available
       </div>
     );
@@ -201,7 +196,7 @@ function OverviewGalleryCarousel({
 
   return (
     <section aria-label={`Karusel galeri ${altText}`} className="space-y-4">
-      {/* carousel container */}
+      {/* Container Karusel */}
       <div
         className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none py-1"
         onMouseEnter={() => setIsPaused(true)}
@@ -224,7 +219,7 @@ function OverviewGalleryCarousel({
               <article
                 key={idx}
                 onClick={() => handleImageClick(realIndex)}
-                className="relative aspect-[4/3] w-[85vw] sm:w-[45vw] md:w-[35vw] lg:w-[300px] flex-shrink-0 overflow-hidden bg-neutral-100 cursor-pointer transition-transform duration-300 active:scale-[0.98]"
+                className="relative aspect-[4/3] w-[85vw] sm:w-[45vw] md:w-[35vw] lg:w-[300px] flex-shrink-0 overflow-hidden bg-neutral-900 border border-neutral-800 cursor-pointer transition-transform duration-300 active:scale-[0.98]"
               >
                 <Image
                   src={img}
@@ -240,7 +235,7 @@ function OverviewGalleryCarousel({
         </motion.div>
       </div>
 
-      {/* dots indicator */}
+      {/* Navigasi Dot */}
       {originalLength > 1 && (
         <nav
           aria-label="Navigasi slide foto"
@@ -252,17 +247,17 @@ function OverviewGalleryCarousel({
               type="button"
               onClick={() => handleDotClick(idx)}
               aria-label={`Buka slide foto ${idx + 1}`}
-              className={`h-2.5 w-2.5 rounded-full transition-all duration-300 focus:outline-none ${
+              className={`h-2 w-2 rounded-full transition-all duration-300 focus:outline-none ${
                 currentIndex % originalLength === idx
-                  ? "bg-neutral-900 scale-110"
-                  : "bg-neutral-300"
+                  ? "bg-white scale-125"
+                  : "bg-neutral-700 hover:bg-neutral-500"
               }`}
             />
           ))}
         </nav>
       )}
 
-      {/* modal lightbox */}
+      {/* Lightbox Modal */}
       <AnimatePresence>
         {selectedImage && selectedIndex !== null && (
           <motion.div
@@ -274,24 +269,24 @@ function OverviewGalleryCarousel({
             role="dialog"
             aria-modal="true"
             aria-label={`Tampilan foto ${altText}`}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xs p-4 cursor-zoom-out"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 cursor-zoom-out"
           >
-            {/* button close */}
+            {/* Tombol Tutup */}
             <button
               type="button"
               onClick={() => setSelectedIndex(null)}
               aria-label="Tutup gambar"
-              className="absolute top-5 right-5 text-white text-3xl font-light cursor-pointer z-50 leading-none p-2 focus:outline-none"
+              className="absolute top-5 right-5 text-neutral-400 hover:text-white text-3xl font-light cursor-pointer z-50 leading-none p-2 focus:outline-none transition-colors"
             >
               ✕
             </button>
 
-            {/* modal container */}
+            {/* Container Modal */}
             <div
               className="relative w-full h-full max-w-6xl max-h-[85vh] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* button prev */}
+              {/* Tombol Prev */}
               {originalLength > 1 && (
                 <button
                   type="button"
@@ -304,7 +299,7 @@ function OverviewGalleryCarousel({
                     );
                   }}
                   aria-label="Foto sebelumnya"
-                  className="absolute left-1 md:-left-10 z-50 text-white cursor-pointer p-1 focus:outline-none"
+                  className="absolute left-1 md:-left-10 z-50 text-neutral-400 hover:text-white cursor-pointer p-1 focus:outline-none transition-colors"
                 >
                   <svg
                     className="w-8 h-12 md:w-10 md:h-16"
@@ -322,7 +317,7 @@ function OverviewGalleryCarousel({
                 </button>
               )}
 
-              {/* image preview */}
+              {/* Preview Gambar */}
               <figure className="relative w-full h-full flex items-center justify-center">
                 <Image
                   src={selectedImage}
@@ -334,7 +329,7 @@ function OverviewGalleryCarousel({
                 />
               </figure>
 
-              {/* button next */}
+              {/* Tombol Next */}
               {originalLength > 1 && (
                 <button
                   type="button"
@@ -345,7 +340,7 @@ function OverviewGalleryCarousel({
                     );
                   }}
                   aria-label="Foto selanjutnya"
-                  className="absolute right-1 md:-right-10 z-50 text-white cursor-pointer p-1 focus:outline-none"
+                  className="absolute right-1 md:-right-10 z-50 text-neutral-400 hover:text-white cursor-pointer p-1 focus:outline-none transition-colors"
                 >
                   <svg
                     className="w-8 h-12 md:w-10 md:h-16"
@@ -402,7 +397,7 @@ export default function CarDetailContent({
 
   return (
     <div className="space-y-12">
-      {/* main section */}
+      {/* Bagian Utama: Galeri & Detail Aksional */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         <section className="lg:col-span-7">
           <ImageGallery images={overviewImages} altText={carTitle} />
@@ -411,9 +406,10 @@ export default function CarDetailContent({
         <section className="lg:col-span-5">{children}</section>
       </div>
 
-      {/* tab section */}
-      <div className="space-y-8 border-t border-neutral-100 pt-6">
-        <nav className="sticky top-0 z-20 bg-white/90 backdrop-blur-md py-3 border-b border-neutral-100">
+      {/* Bagian Tab & Detail Konten */}
+      <div className="space-y-8 border-t border-neutral-800 pt-6">
+        {/* Navigasi Tab (Sticky Navbar Offset) */}
+        <nav className="sticky top-16 sm:top-20 z-20 bg-neutral-950/90 backdrop-blur-md py-3 border-b border-neutral-800">
           <ul className="flex items-center gap-8 overflow-x-auto whitespace-nowrap scrollbar-none touch-pan-x px-1">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
@@ -422,13 +418,17 @@ export default function CarDetailContent({
                   <button
                     type="button"
                     onClick={() => setActiveTab(item.id)}
-                    className="relative py-2 text-sm md:text-base tracking-[0.15em] font-semibold uppercase text-neutral-900 transition-colors duration-200 hover:text-neutral-500 inline-block cursor-pointer"
+                    className={`relative py-2 text-xs sm:text-sm md:text-base tracking-[0.15em] font-semibold uppercase transition-colors duration-200 inline-block cursor-pointer ${
+                      isActive
+                        ? "text-white"
+                        : "text-neutral-400 hover:text-neutral-200"
+                    }`}
                   >
                     {item.label}
                     {isActive && (
                       <motion.div
                         layoutId="activeTabIndicator"
-                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-neutral-900"
+                        className="absolute bottom-0 left-0 right-0 h-[2px] bg-white"
                         transition={{
                           type: "spring",
                           stiffness: 400,
@@ -443,22 +443,24 @@ export default function CarDetailContent({
           </ul>
         </nav>
 
-        {/* tab content */}
+        {/* Konten Tab */}
         <div className="space-y-12 pt-2">
           {activeTab === "overview" && (
             <>
-              <section className="space-y-3 bg-[#f2f2f2] p-6">
-                <h2 className="text-base md:text-[24px] font-black uppercase tracking-[0.2em] text-neutral-900">
+              {/* Seksi Deskripsi Spesifikasi */}
+              <section className="space-y-3 bg-neutral-900 border border-neutral-800 p-6 rounded-xs">
+                <h2 className="text-base md:text-[20px] font-bold uppercase tracking-[0.15em] text-white">
                   Specifications
                 </h2>
-                <p className="text-sm md:text-base leading-relaxed text-neutral-700 whitespace-pre-line font-normal tracking-wide">
+                <p className="text-sm md:text-base leading-relaxed text-neutral-300 whitespace-pre-line font-normal tracking-wide">
                   {car.description ||
                     "No additional specification description available for this unit."}
                 </p>
               </section>
 
+              {/* Seksi Karusel Galeri */}
               <section className="space-y-4">
-                <h2 className="text-base md:text-[24px] font-black uppercase tracking-[0.2em] text-neutral-900">
+                <h2 className="text-base md:text-[20px] font-bold uppercase tracking-[0.15em] text-white">
                   Gallery
                 </h2>
                 <OverviewGalleryCarousel
@@ -470,8 +472,8 @@ export default function CarDetailContent({
           )}
 
           {activeTab === "spesifikasi" && (
-            <section className="space-y-3 bg-[#f2f2f2] p-6">
-              <p className="text-sm md:text-base leading-relaxed text-neutral-700 whitespace-pre-line font-normal tracking-wide">
+            <section className="space-y-3 bg-neutral-900 border border-neutral-800 p-6 rounded-xs">
+              <p className="text-sm md:text-base leading-relaxed text-neutral-300 whitespace-pre-line font-normal tracking-wide">
                 {car.description ||
                   "No additional specification description available for this unit."}
               </p>
