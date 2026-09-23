@@ -320,7 +320,7 @@ export default function InventoryFilter({
     <>
       <section
         aria-label="Vehicle Filters"
-        className="relative z-30 w-screen left-1/2 -translate-x-1/2 -mt-32 sm:-mt-40 xl:-mt-48 mb-16 sm:mb-24 border-y border-white/10 bg-black/50 backdrop-blur-md text-white shadow-2xl transition-all"
+        className="relative z-30 w-screen left-1/2 -translate-x-1/2 -mt-32 sm:-mt-40 xl:-mt-48 mb-2 sm:mb-15 border-y border-white/10 bg-black/50 backdrop-blur-md text-white shadow-2xl transition-all"
       >
         <div className="w-full px-4 sm:px-8 xl:px-12 py-8 sm:py-10 xl:py-12">
           <form onSubmit={handleSearchSubmit}>
