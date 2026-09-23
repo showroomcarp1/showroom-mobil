@@ -10,7 +10,7 @@ import {
 export default function Footer() {
   return (
     <footer className="border-t border-neutral-800 bg-neutral-800 text-neutral-300">
-      {/* Area padding diperluas ke atas & bawah (py-32 md:py-40) */}
+      {/* Area padding  */}
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-20 lg:px-8">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-4 lg:gap-20">
           {/* Kolom Logo Brand */}
@@ -139,7 +139,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-24 border-t border-neutral-600 pt-10 text-left text-base font-semibold text-neutral-500">
+        <div className="mt-12 border-t border-neutral-600 pt-10 text-left text-base font-semibold text-neutral-500">
           <p>&copy; AutoHigh Car Showroom {new Date().getFullYear()} </p>
         </div>
       </div>
