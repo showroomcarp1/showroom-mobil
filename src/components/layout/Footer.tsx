@@ -9,9 +9,9 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="border-t border-neutral-800 bg-neutral-950 text-neutral-300">
+    <footer className="border-t border-neutral-800 bg-neutral-800 text-neutral-300">
       {/* Area padding diperluas ke atas & bawah (py-32 md:py-40) */}
-      <div className="mx-auto max-w-7xl px-4 py-32 sm:px-6 md:py-20 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-20 lg:px-8">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-4 lg:gap-20">
           {/* Kolom Logo Brand */}
           <div className="md:col-span-1 flex flex-col justify-start">
@@ -21,7 +21,7 @@ export default function Footer() {
                 alt="Showroom Logo"
                 width={320}
                 height={96}
-                className="h-20 md:h-24 w-auto object-contain"
+                className="h-12 md:h-24 w-auto object-contain"
                 priority
               />
             </Link>
@@ -90,15 +90,15 @@ export default function Footer() {
               Operating Hours
             </h3>
             <ul className="mt-6 space-y-4 text-base text-neutral-400">
-              <li className="flex justify-between border-b border-neutral-900 pb-3">
+              <li className="flex justify-between border-b border-neutral-600 pb-3">
                 <span>Monday - Friday:</span>
                 <span className="font-semibold text-white">08.00 - 17.00</span>
               </li>
-              <li className="flex justify-between border-b border-neutral-900 pb-3">
+              <li className="flex justify-between border-b border-neutral-600 pb-3">
                 <span>Saturday:</span>
                 <span className="font-semibold text-white">08.00 - 15.00</span>
               </li>
-              <li className="flex justify-between border-b border-neutral-900 pb-3">
+              <li className="flex justify-between border-b border-neutral-600 pb-3">
                 <span>Sunday / Holiday:</span>
                 <span className="font-semibold text-neutral-500">Closed</span>
               </li>
@@ -139,7 +139,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-24 border-t border-neutral-900 pt-10 text-left text-base font-semibold text-neutral-500">
+        <div className="mt-24 border-t border-neutral-600 pt-10 text-left text-base font-semibold text-neutral-500">
           <p>&copy; AutoHigh Car Showroom {new Date().getFullYear()} </p>
         </div>
       </div>
