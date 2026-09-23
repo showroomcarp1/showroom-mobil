@@ -261,7 +261,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
           </header>
 
           <footer className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-neutral-800">
-            <span className="block text-[9px] sm:text-xs font-semibold text-neutral-400 uppercase tracking-wider leading-none">
+            <span className="block text-[9px] sm:text-xs font-semibold text-white uppercase tracking-wider leading-none">
               Cash Price
             </span>
 
