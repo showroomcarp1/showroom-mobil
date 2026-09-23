@@ -1,4 +1,9 @@
-export default function PromoPage() {
+import { Suspense } from "react";
+
+// Paksa halaman untuk selalu di-render dinamis agar tidak bentrok dengan static generation
+export const dynamic = "force-dynamic";
+
+function PromoContent() {
   return (
     <main className="py-28 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -27,5 +32,13 @@ export default function PromoPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function PromoPage() {
+  return (
+    <Suspense fallback={<div className="py-28 text-center">Loading...</div>}>
+      <PromoContent />
+    </Suspense>
   );
 }
