@@ -25,7 +25,6 @@ interface MobileSearchProps {
 const RECENT_SEARCHES_KEY = "car_recent_searches";
 const MAX_RECENT_ITEMS = 5;
 
-// Initial state localStorage
 const getInitialRecentSearches = (): string[] => {
   if (typeof window === "undefined") return [];
   try {
@@ -46,7 +45,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto focus & trigger keyboard
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -59,7 +57,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
     }
   }, [isOpen]);
 
-  // Simpan kata kunci
   const saveRecentSearch = (searchTerm: string) => {
     const cleanTerm = searchTerm.trim();
     if (!cleanTerm) return;
@@ -82,7 +79,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
     });
   };
 
-  // Hapus satu item
   const removeRecentSearch = (e: React.MouseEvent, itemToRemove: string) => {
     e.stopPropagation();
     setRecentSearches((prev) => {
@@ -96,7 +92,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
     });
   };
 
-  // Hapus semua history
   const clearAllRecentSearches = () => {
     setRecentSearches([]);
     try {
@@ -106,7 +101,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
     }
   };
 
-  // Handle input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
@@ -116,7 +110,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
     }
   };
 
-  // Debounce search
   useEffect(() => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return;
@@ -131,14 +124,12 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Tutup modal
   const handleClose = useCallback(() => {
     setQuery("");
     setResults([]);
     onClose();
   }, [onClose]);
 
-  // Submit form
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -149,7 +140,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
     router.push(`/cars?search=${encodeURIComponent(searchQuery)}`);
   };
 
-  // Pilih dari history
   const handleSelectRecent = (searchTerm: string) => {
     saveRecentSearch(searchTerm);
     handleClose();
@@ -178,17 +168,15 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                 <FontAwesomeIcon
                   icon={faSpinner}
                   className="w-4 h-4 text-neutral-400 animate-spin pointer-events-none shrink-0"
-                  style={{ width: "1rem", height: "1rem" }}
                 />
               ) : (
                 <FontAwesomeIcon
                   icon={faSearch}
                   className="w-4 h-4 text-neutral-400 pointer-events-none shrink-0"
-                  style={{ width: "1rem", height: "1rem" }}
                 />
               )}
 
-              {/* Input field (text-base / 16px mencegah zoom di iOS) */}
+              {/* Input field */}
               <input
                 ref={inputRef}
                 type="text"
@@ -197,7 +185,7 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                 placeholder="Search"
                 autoFocus
                 style={{ fontSize: "16px" }}
-                className="w-full ml-3 bg-transparent text-base font-medium text-white placeholder-neutral-400 focus:outline-none"
+                className="w-full ml-3 bg-transparent text-base font-medium text-white placeholder-neutral-400 focus:outline-none pr-1"
               />
 
               {/* Clear button */}
@@ -207,14 +195,12 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                   onClick={() => {
                     setQuery("");
                     setResults([]);
+                    inputRef.current?.focus();
                   }}
-                  className="p-1 bg-white rounded-full text-black cursor-pointer"
+                  className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-black shrink-0 cursor-pointer transition-colors"
                   aria-label="Clear input"
                 >
-                  <FontAwesomeIcon
-                    icon={faXmark}
-                    className="w-1 h-1 block"
-                  />
+                  <FontAwesomeIcon icon={faXmark} className="w-2 h-2 block" />
                 </button>
               )}
             </form>
@@ -232,7 +218,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
           {/* Konten utama */}
           <main className="flex-1 overflow-y-auto bg-transparent">
             {query.trim().length > 0 ? (
-              /* Suggestion list */
               <article>
                 <header className="px-6 py-2.5 border-b border-white/5 bg-black/20">
                   <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
@@ -310,7 +295,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                 )}
               </article>
             ) : (
-              /* Recent search section */
               <article>
                 {recentSearches.length > 0 ? (
                   <div className="py-2">
@@ -332,14 +316,12 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                                 <FontAwesomeIcon
                                   icon={faClock}
                                   className="w-4 h-4 text-neutral-400 shrink-0"
-                                  style={{ width: "1rem", height: "1rem" }}
                                 />
                                 <span className="text-sm font-medium text-white truncate">
                                   {item}
                                 </span>
                               </div>
 
-                              {/* Remove single item button */}
                               <button
                                 type="button"
                                 onClick={(e) => removeRecentSearch(e, item)}
@@ -349,7 +331,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                                 <FontAwesomeIcon
                                   icon={faXmark}
                                   className="w-4 h-4 block"
-                                  style={{ width: "1rem", height: "1rem" }}
                                 />
                               </button>
                             </div>
@@ -358,7 +339,6 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                       </ul>
                     </nav>
 
-                    {/* Clear all button */}
                     <footer className="mt-6 flex justify-center px-6">
                       <button
                         type="button"
