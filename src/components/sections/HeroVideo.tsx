@@ -53,7 +53,6 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
       {/* 1. Poster Layer (z-10): Penutup instan agar tidak ada black flash */}
       <img
         src={poster}
-        alt="Hero Banner"
         className={`absolute inset-0 z-10 w-full h-full object-cover transition-opacity duration-500 ease-out ${
           isVideoPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
