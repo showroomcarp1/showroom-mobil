@@ -1,7 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import InventoryFilter from "@/components/sections/InventoryFilter";
-import CarCard from "@/components/sections/CarCard";
+import CarCard, { CarCardSkeleton } from "@/components/sections/CarCard";
 import HeroVideo from "@/components/sections/HeroVideo";
 import type {
   Car,
@@ -11,31 +12,34 @@ import type {
 } from "@/types/cars";
 import type { Database } from "@/types/database";
 
-// Memaksa halaman untuk selalu di-render secara dinamis di server saat request datang
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 type CarRow = Database["public"]["Tables"]["cars"]["Row"];
 
+type SearchParamsType = {
+  search?: string;
+  brand?: string;
+  condition?: string;
+  transmission?: string;
+  fuel_type?: string;
+  max_price?: string;
+  max_km?: string;
+  location?: string;
+  type?: string;
+  price?: string;
+  year?: string;
+};
+
 interface SearchParamsProps {
-  searchParams: Promise<{
-    search?: string;
-    brand?: string;
-    condition?: string;
-    transmission?: string;
-    fuel_type?: string;
-    max_price?: string;
-    max_km?: string;
-    location?: string;
-    type?: string;
-    price?: string;
-    year?: string;
-  }>;
+  searchParams: Promise<SearchParamsType>;
 }
 
-export default async function CarsListingPage({
+// Sub-komponen Async untuk fetching data Supabase
+async function CarsListContent({
   searchParams,
-}: SearchParamsProps) {
+}: {
+  searchParams: Promise<SearchParamsType>;
+}) {
   const resolvedSearchParams = await searchParams;
   const {
     search,
@@ -54,7 +58,6 @@ export default async function CarsListingPage({
     .in("status", ["available", "booked"])
     .order("created_at", { ascending: false });
 
-  // 1. Logika Pencarian Global
   if (search && search.trim() !== "") {
     const cleanSearch = search.trim();
     const pattern = `%${cleanSearch}%`;
@@ -63,7 +66,6 @@ export default async function CarsListingPage({
     );
   }
 
-  // 2. Filter Spesifik dari InventoryFilter
   if (brand && brand !== "All") {
     query = query.ilike("brand", `%${brand}%`);
   }
@@ -107,8 +109,70 @@ export default async function CarsListingPage({
   );
 
   return (
+    <section aria-label="Vehicle Listing" className="pt-6">
+      {search && search.trim() !== "" && (
+        <div className="mb-8 pb-3 border-b border-neutral-800 flex items-baseline justify-between gap-4">
+          <h2 className="text-2xl sm:text-4xl font-light tracking-tight text-neutral-100 capitalize">
+            &ldquo;{search}&rdquo;
+          </h2>
+
+          <Link
+            href="/cars"
+            scroll={false}
+            className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] text-neutral-400 hover:text-white transition-colors shrink-0"
+          >
+            Reset
+          </Link>
+        </div>
+      )}
+
+      {carList.length === 0 ? (
+        <div className="py-20 text-center flex flex-col items-center justify-center">
+          <p className="text-xs text-neutral-400 font-light tracking-[0.2em] uppercase mb-6">
+            No Vehicles Found
+          </p>
+          {hasActiveFilters && (
+            <Link
+              href="/cars"
+              scroll={false}
+              className="px-8 py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-950 text-xs font-semibold uppercase tracking-[0.2em] transition-colors"
+            >
+              Reset
+            </Link>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 transition-all duration-300">
+          {carList.map((car) => (
+            <CarCard key={car.id} car={car} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+// Loading Skeleton Fallback
+function CarsLoadingSkeleton() {
+  return (
+    <div className="pt-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <CarCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Main Page Component dengan Suspense Boundary
+export default async function CarsListingPage({
+  searchParams,
+}: SearchParamsProps) {
+  const resolvedSearchParams = await searchParams;
+
+  return (
     <main className="bg-neutral-950 min-h-screen text-neutral-100 pb-16">
-      {/* Hero Video Banner */}
       <section className="relative w-full h-[90vh] min-h-[650px] max-h-[950px] bg-neutral-950 overflow-hidden">
         <HeroVideo
           poster="/images/hero-video-poster.jpg"
@@ -116,61 +180,20 @@ export default async function CarsListingPage({
         />
       </section>
 
-      {/* Main Inventory Content */}
       <div className="relative z-30 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-28 sm:-mt-32">
         <InventoryFilter
           currentFilters={{
-            brand: brand || "",
-            condition: condition || "",
-            transmission: transmission || "",
-            fuel_type: fuel_type || "",
-            max_price: max_price || "",
-            max_km: max_km || "",
+            brand: resolvedSearchParams.brand || "",
+            condition: resolvedSearchParams.condition || "",
+            transmission: resolvedSearchParams.transmission || "",
+            fuel_type: resolvedSearchParams.fuel_type || "",
+            max_price: resolvedSearchParams.max_price || "",
+            max_km: resolvedSearchParams.max_km || "",
           }}
         >
-          <section aria-label="Vehicle Listing" className="pt-6">
-            {/* Header Search Ultra-Simpel */}
-            {search && search.trim() !== "" && (
-              <div className="mb-8 pb-3 border-b border-neutral-800 flex items-baseline justify-between gap-4">
-                <h2 className="text-2xl sm:text-4xl font-light tracking-tight text-neutral-100 capitalize">
-                  &ldquo;{search}&rdquo;
-                </h2>
-
-                <Link
-                  href="/cars"
-                  scroll={false}
-                  className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em] text-neutral-400 hover:text-white transition-colors shrink-0"
-                >
-                  Reset
-                </Link>
-              </div>
-            )}
-
-            {/* Jika Hasil Kosong */}
-            {carList.length === 0 ? (
-              <div className="py-20 text-center flex flex-col items-center justify-center">
-                <p className="text-xs text-neutral-400 font-light tracking-[0.2em] uppercase mb-6">
-                  No Vehicles Found
-                </p>
-                {hasActiveFilters && (
-                  <Link
-                    href="/cars"
-                    scroll={false}
-                    className="px-8 py-3 bg-neutral-100 hover:bg-neutral-200 text-neutral-950 text-xs font-semibold uppercase tracking-[0.2em] transition-colors"
-                  >
-                    Reset
-                  </Link>
-                )}
-              </div>
-            ) : (
-              /* Grid Kendaraan 4 Kolom */
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 transition-all duration-300">
-                {carList.map((car) => (
-                  <CarCard key={car.id} car={car} />
-                ))}
-              </div>
-            )}
-          </section>
+          <Suspense fallback={<CarsLoadingSkeleton />}>
+            <CarsListContent searchParams={searchParams} />
+          </Suspense>
         </InventoryFilter>
       </div>
     </main>
