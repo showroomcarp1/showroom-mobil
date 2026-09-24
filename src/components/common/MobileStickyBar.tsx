@@ -231,7 +231,7 @@ export default function MobileStickyBar({
               dragSnapToOrigin
               onDragEnd={handleDragEnd}
               style={{ willChange: "transform" }}
-              className="relative w-full sm:max-w-md rounded-t-4xl bg-white p-5 sm:p-6 border-t border-neutral-200 z-10 max-h-[85vh] overflow-y-auto"
+              className="relative w-full sm:max-w-md rounded-t-3xl bg-white p-5 sm:p-6 border-t border-neutral-200 z-10 max-h-[85vh] overflow-y-auto"
             >
               {/* Dragger Bar Area */}
               <div className="w-full flex justify-center pb-4  cursor-grab active:cursor-grabbing touch-none select-none">
