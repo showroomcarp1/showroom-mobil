@@ -195,7 +195,7 @@ export default async function CarDetailPage({ params }: CarDetailPageProps) {
                   Price
                 </span>
                 <div className="flex flex-wrap items-baseline gap-3 mt-1">
-                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-red-500 tracking-tight">
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#b89563] tracking-tight">
                     IDR {finalPrice.toLocaleString("id-ID")}
                   </p>
 

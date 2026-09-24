@@ -274,13 +274,11 @@ export default function MobileSearch({ isOpen, onClose }: MobileSearchProps) {
                                 )}
                               </div>
 
-                              <div className="flex items-center gap-3 mt-0.5 text-xs">
-                                <span className="font-medium text-neutral-200">
+                              <div className="flex items-center gap-3 mt-0.5 text-[18px]">  
+                                <span className="font-semibold text-[#b89563]">
                                   {formattedPrice}
                                 </span>
-                                <span className="text-neutral-400 font-normal">
-                                  {car.year}
-                                </span>
+
                               </div>
                             </div>
                           </Link>

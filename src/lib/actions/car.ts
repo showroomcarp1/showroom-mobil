@@ -214,7 +214,6 @@ export const getTrendingCars = unstable_cache(
   { revalidate: 600, tags: ["cars"] },
 );
 
-// Tambahkan di bagian bawah file lib/actions/car.ts
 
 export async function searchCars(query: string, limit = 5): Promise<CarRow[]> {
   if (!query || query.trim().length === 0) return [];

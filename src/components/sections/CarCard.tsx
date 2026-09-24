@@ -260,7 +260,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
             )}
           </header>
 
-          <footer className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-neutral-800">
+          <footer className="mt-3 sm:mt-4 pt-2.5 sm:pt-3">
             <span className="block text-[9px] sm:text-xs font-semibold text-white uppercase tracking-wider leading-none">
               Cash Price
             </span>
@@ -268,7 +268,7 @@ export default function CarCard({ car, variant = "default" }: CarCardProps) {
             <div className="mt-1 flex flex-wrap items-baseline gap-1.5 sm:gap-2">
               <p
                 className={`text-sm sm:text-xl font-extrabold tracking-tight leading-tight ${
-                  isBooked ? "text-neutral-500" : "text-red-500"
+                  isBooked ? "text-neutral-500" : "text-[#b89563]"
                 }`}
               >
                 {formattedFinalPrice}
