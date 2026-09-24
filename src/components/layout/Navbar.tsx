@@ -214,7 +214,7 @@ export default function Navbar() {
 
             {/* Center: Logo (Tengah) */}
             <Link
-              href="/"
+              href="/cars"
               className="absolute left-1/2 -translate-x-1/2 flex items-center shrink-0 z-10"
               aria-label="Homepage"
             >

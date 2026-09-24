@@ -2,11 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
-// 1. TAMBAHKAN IMPORT FONTAWESOME DI SINI:
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
-// 2. MATIKAN INJEKSI CSS OTOMATIS SUPAYA TIDAK BENTROK
 config.autoAddCss = false;
 
 const inter = Inter({
@@ -15,12 +13,10 @@ const inter = Inter({
   display: "swap",
 });
 
-// Konfigurasi viewport PWA
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#0a0a0a", 
 };
 
-// Konfigurasi Metadata + PWA + Icons
 export const metadata: Metadata = {
   title: {
     default: "AutoHigh | Luxury Cars Showroom",
@@ -49,8 +45,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${inter.variable} h-full`}>
-      <body className="h-full bg-neutral-950 font-sans text-neutral-900 antialiased selection:bg-neutral-900 selection:text-white">
+    <html lang="id" className={`${inter.variable} h-full bg-neutral-950`}>
+      <body className="min-h-full bg-neutral-950 font-sans text-neutral-100 antialiased selection:bg-neutral-800 selection:text-white">
         {children}
       </body>
     </html>

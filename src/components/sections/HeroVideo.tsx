@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 interface HeroVideoProps {
   poster: string;
@@ -50,26 +51,33 @@ export default function HeroVideo({ poster, videoUrl }: HeroVideoProps) {
 
   return (
     <div className="relative w-full h-full bg-neutral-950 overflow-hidden">
-      {/* 1. Poster Layer (z-10): Penutup instan agar tidak ada black flash */}
-      <img
-        src={poster}
-        className={`absolute inset-0 z-10 w-full h-full object-cover transition-opacity duration-500 ease-out ${
+      {/* 1. Poster Layer (z-10): Menggunakan Next/Image agar dimuat instant tanpa border/flash */}
+      <div
+        className={`absolute inset-0 z-10 w-full h-full bg-transparent transition-opacity duration-500 ease-out ${
           isVideoPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
-      />
+      >
+        <Image
+          src={poster}
+          alt="Hero Poster"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover border-none outline-none"
+        />
+      </div>
 
-      {/* 2. Video Layer: Selalu dirender di SSR & Client untuk mencegah Hydration Error */}
+      {/* 2. Video Layer: Dikunci dengan bg-neutral-950 & atribut yang valid */}
       <video
         ref={videoRef}
         autoPlay
         loop
         muted
         playsInline
-        webkit-playsinline="true"
         preload="auto"
         onPlaying={() => setIsVideoPlaying(true)}
         onTimeUpdate={handleTimeUpdate}
-        className="w-full h-full object-cover pointer-events-none transform-gpu"
+        className="w-full h-full object-cover pointer-events-none border-none outline-none bg-neutral-950 transform-gpu"
       >
         <source src={videoUrl} type="video/mp4" />
       </video>
