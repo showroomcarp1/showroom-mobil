@@ -18,7 +18,7 @@ interface CarDetailContentProps {
   children?: React.ReactNode;
 }
 
-// Komponen Karusel Galeri Overview
+// Carousel
 function OverviewGalleryCarousel({
   images,
   altText,
@@ -30,20 +30,18 @@ function OverviewGalleryCarousel({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // Tracker pointer untuk membedakan antara drag dan click
   const dragStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const isDragging = useRef(false);
 
-  // Duplikasi array gambar untuk seamless infinite loop
   const extendedImages =
     images.length > 1 ? [...images, ...images, ...images] : images;
   const originalLength = images.length;
 
   const x = useMotionValue(0);
-  const itemWidth = 300 + 16; // width 300px + gap 16px
+  const itemWidth = 300 + 16;
   const totalOriginalWidth = originalLength * itemWidth;
 
-  // Auto scroll lembut
+  // Auto scroll
   useEffect(() => {
     if (originalLength <= 1 || isPaused || selectedIndex !== null) return;
 
@@ -74,7 +72,7 @@ function OverviewGalleryCarousel({
     x,
   ]);
 
-  // Kunci scroll halaman saat lightbox modal terbuka
+  // Lock scroll on modal
   useEffect(() => {
     if (selectedIndex !== null) {
       document.body.style.overflow = "hidden";
@@ -86,7 +84,7 @@ function OverviewGalleryCarousel({
     };
   }, [selectedIndex]);
 
-  // Navigasi keyboard pada lightbox
+  // Keyboard navigation
   useEffect(() => {
     if (selectedIndex === null) return;
 
@@ -108,7 +106,7 @@ function OverviewGalleryCarousel({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedIndex, originalLength]);
 
-  // Click handler indikator dot
+  // Dot click
   const handleDotClick = (index: number) => {
     setCurrentIndex(index);
     const currentX = x.get();
@@ -122,7 +120,7 @@ function OverviewGalleryCarousel({
     });
   };
 
-  // Handler interaksi pointer
+  // Pointer events
   const handlePointerDown = (e: React.PointerEvent) => {
     dragStartPos.current = { x: e.clientX, y: e.clientY };
     isDragging.current = false;
@@ -138,7 +136,7 @@ function OverviewGalleryCarousel({
     }
   };
 
-  // Seamless wrap saat digeser
+  // Drag handlers
   const handleDrag = () => {
     if (originalLength <= 1) return;
     const currentX = x.get();
@@ -178,6 +176,7 @@ function OverviewGalleryCarousel({
     });
   };
 
+  // Image click
   const handleImageClick = (realIndex: number) => {
     if (!isDragging.current) {
       setSelectedIndex(realIndex);
@@ -196,7 +195,7 @@ function OverviewGalleryCarousel({
 
   return (
     <section aria-label={`Karusel galeri ${altText}`} className="space-y-4">
-      {/* Container Karusel */}
+      {/* Carousel list */}
       <div
         className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none py-1"
         onMouseEnter={() => setIsPaused(true)}
@@ -221,21 +220,23 @@ function OverviewGalleryCarousel({
                 onClick={() => handleImageClick(realIndex)}
                 className="relative aspect-[4/3] w-[85vw] sm:w-[45vw] md:w-[35vw] lg:w-[300px] flex-shrink-0 overflow-hidden bg-neutral-900 border border-neutral-800 cursor-pointer transition-transform duration-300 active:scale-[0.98]"
               >
-                <Image
-                  src={img}
-                  alt={`${altText} - foto ke-${realIndex + 1}`}
-                  fill
-                  quality={75}
-                  sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 300px"
-                  className="object-cover pointer-events-none"
-                />
+                <figure className="relative w-full h-full">
+                  <Image
+                    src={img}
+                    alt={`${altText} - foto ke-${realIndex + 1}`}
+                    fill
+                    quality={75}
+                    sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 300px"
+                    className="object-cover pointer-events-none"
+                  />
+                </figure>
               </article>
             );
           })}
         </motion.div>
       </div>
 
-      {/* Navigasi Dot */}
+      {/* Dots navigation */}
       {originalLength > 1 && (
         <nav
           aria-label="Navigasi slide foto"
@@ -257,7 +258,7 @@ function OverviewGalleryCarousel({
         </nav>
       )}
 
-      {/* Lightbox Modal */}
+      {/* Lightbox modal */}
       <AnimatePresence>
         {selectedImage && selectedIndex !== null && (
           <motion.div
@@ -271,7 +272,7 @@ function OverviewGalleryCarousel({
             aria-label={`Tampilan foto ${altText}`}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4 cursor-zoom-out"
           >
-            {/* Tombol Tutup */}
+            {/* Close button */}
             <button
               type="button"
               onClick={() => setSelectedIndex(null)}
@@ -281,12 +282,12 @@ function OverviewGalleryCarousel({
               ✕
             </button>
 
-            {/* Container Modal */}
+            {/* Lightbox content */}
             <div
               className="relative w-full h-full max-w-6xl max-h-[85vh] flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Tombol Prev */}
+              {/* Prev button */}
               {originalLength > 1 && (
                 <button
                   type="button"
@@ -317,7 +318,7 @@ function OverviewGalleryCarousel({
                 </button>
               )}
 
-              {/* Preview Gambar */}
+              {/* Preview image */}
               <figure className="relative w-full h-full flex items-center justify-center">
                 <Image
                   src={selectedImage}
@@ -329,7 +330,7 @@ function OverviewGalleryCarousel({
                 />
               </figure>
 
-              {/* Tombol Next */}
+              {/* Next button */}
               {originalLength > 1 && (
                 <button
                   type="button"
@@ -396,20 +397,20 @@ export default function CarDetailContent({
   ];
 
   return (
-    <div className="space-y-12">
-      {/* Bagian Utama: Galeri & Detail Aksional */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-        <section className="lg:col-span-7">
+    <main className="space-y-12">
+      {/* Hero section */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        <div className="lg:col-span-7">
           <ImageGallery images={overviewImages} altText={carTitle} />
-        </section>
+        </div>
 
-        <section className="lg:col-span-5">{children}</section>
-      </div>
+        <aside className="lg:col-span-5">{children}</aside>
+      </section>
 
-      {/* Bagian Tab & Detail Konten */}
-      <div className="space-y-8 border-t border-neutral-800 pt-6">
-        {/* Navigasi Tab (Sticky Navbar Offset) */}
-        <nav className="sticky top-16 sm:top-20 z-20 bg-neutral-950/90 backdrop-blur-md py-3 border-b border-neutral-800">
+      {/* Tabs & Content */}
+      <section className="space-y-8">
+        {/* Sticky Navbar */}
+        <nav className="sm:top-20 z-20 bg-black/50 py-3 border-b border-neutral-800">
           <ul className="flex items-center gap-8 overflow-x-auto whitespace-nowrap scrollbar-none touch-pan-x px-1">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
@@ -443,11 +444,11 @@ export default function CarDetailContent({
           </ul>
         </nav>
 
-        {/* Konten Tab */}
+        {/* Tab content */}
         <div className="space-y-12 pt-2">
           {activeTab === "overview" && (
             <>
-              {/* Seksi Deskripsi Spesifikasi */}
+              {/* Specifications */}
               <section className="space-y-3 bg-neutral-900 border border-neutral-800 p-6 rounded-xs">
                 <h2 className="text-base md:text-[20px] font-bold uppercase tracking-[0.15em] text-white">
                   Specifications
@@ -458,7 +459,7 @@ export default function CarDetailContent({
                 </p>
               </section>
 
-              {/* Seksi Karusel Galeri */}
+              {/* Gallery */}
               <section className="space-y-4">
                 <h2 className="text-base md:text-[20px] font-bold uppercase tracking-[0.15em] text-white">
                   Gallery
@@ -498,7 +499,7 @@ export default function CarDetailContent({
             </section>
           )}
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
