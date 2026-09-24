@@ -233,9 +233,9 @@ export default function MobileStickyBar({
               style={{ willChange: "transform" }}
               className="relative w-full sm:max-w-md rounded-t-2xl bg-white p-5 sm:p-6 border-t border-neutral-200 z-10 max-h-[85vh] overflow-y-auto"
             >
-              {/* Dragger Bar Area (Memudahkan sentuhan drag) */}
-              <div className="w-full flex justify-center pb-4 pt-1 cursor-grab active:cursor-grabbing touch-none select-none">
-                <div className="w-12 h-1.5 rounded-full bg-neutral-300 hover:bg-neutral-400 transition-colors" />
+              {/* Dragger Bar Area */}
+              <div className="w-full flex justify-center pb-4  cursor-grab active:cursor-grabbing touch-none select-none">
+                <div className="w-12 h-1 rounded-full bg-neutral-300" />
               </div>
 
               {/* Header */}
