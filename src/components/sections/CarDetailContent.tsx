@@ -410,7 +410,7 @@ export default function CarDetailContent({
       {/* Tabs & Content */}
       <section className="space-y-8">
         {/* Sticky Navbar */}
-        <nav className="sm:top-20 z-20 bg-black/50 py-3 border-b border-neutral-800">
+        <nav className="sm:top-20 z-20 bg-neutral-950 py-3 border-b border-neutral-800">
           <ul className="flex items-center gap-8 overflow-x-auto whitespace-nowrap scrollbar-none touch-pan-x px-1">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
